@@ -1,0 +1,114 @@
+﻿@page "/livros"
+@using SGB_Project.Controllers
+@using SGB_Project.Controllers
+@using SGB_Project.Models
+@using SGB_Project.Models
+@using SGB_Project.Controllers
+@using SGB_Project.Models
+@inject SGB_Project.Controllers.LivroService LivroService
+
+<h3>Gestão de Livros</h3>
+
+<EditForm Model="@livroAtual" OnValidSubmit="SalvarLivro">
+    <DataAnnotationsValidator />
+    <div class="card mb-4">
+        <div class="card-header">
+            @(livroAtual.IdLivro == 0 ? "Adicionar Novo Livro" : "Editar Livro")
+        </div>
+        <div class="card-body">
+            <input type="hidden" @bind="livroAtual.IdLivro" />
+            <div class="mb-3">
+                <label>Título:</label>
+                <InputText class="form-control" @bind-Value="livroAtual.Titulo" />
+                <ValidationMessage For="@(() => livroAtual.Titulo)" />
+            </div>
+            <div class="mb-3">
+                <label>Autor:</label>
+                <InputText class="form-control" @bind-Value="livroAtual.Autor" />
+                <ValidationMessage For="@(() => livroAtual.Autor)" />
+            </div>
+            <div class="mb-3">
+                <label>Estoque:</label>
+                <InputNumber class="form-control" @bind-Value="livroAtual.Estoque" />
+                <ValidationMessage For="@(() => livroAtual.Estoque)" />
+            </div>
+        </div>
+        <div class="card-footer">
+            <button type="submit" class="btn btn-primary">Salvar</button>
+            <button type="button" class="btn btn-secondary" @onclick="Cancelar">Limpar</button>
+        </div>
+    </div>
+</EditForm>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Título</th>
+            <th>Autor</th>
+            <th>Estoque</th>
+            <th>Ações</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (listaLivros != null)
+        {
+            @foreach (var livro in listaLivros)
+            {
+                <tr>
+                    <td>@livro.Titulo</td>
+                    <td>@livro.Autor</td>
+                    <td>@livro.Estoque</td>
+                    <td>
+                        <button class="btn btn-sm btn-info" @onclick="() => PrepararEdicao(livro)">Editar</button>
+                        <button class="btn btn-sm btn-danger" @onclick="() => RemoverLivro(livro.IdLivro)">Excluir</button>
+                    </td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>
+
+@code {
+    private List<Livro> listaLivros;
+    private Livro livroAtual = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CarregarLivros();
+    }
+
+    private async Task CarregarLivros()
+    {
+        listaLivros = await LivroService.ListarAsync();
+    }
+
+    private void PrepararEdicao(Livro livro)
+    {
+        livroAtual = new Livro { IdLivro = livro.IdLivro, Titulo = livro.Titulo, Autor = livro.Autor, Estoque = livro.Estoque };
+    }
+
+    private void Cancelar()
+    {
+        livroAtual = new();
+    }
+
+    private async Task SalvarLivro()
+    {
+        if (livroAtual.IdLivro == 0)
+        {
+            await LivroService.AdicionarAsync(livroAtual);
+        }
+        else
+        {
+            await LivroService.AtualizarAsync(livroAtual);
+        }
+        Cancelar();
+        await CarregarLivros();
+    }
+
+    private async Task RemoverLivro(int id)
+    {
+        await LivroService.RemoverAsync(id);
+        await CarregarLivros();
+    }
+}

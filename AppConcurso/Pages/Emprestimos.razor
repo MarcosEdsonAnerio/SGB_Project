@@ -1,0 +1,105 @@
+﻿@page "/emprestimos"
+@using SGB_Project.Controllers
+@using SGB_Project.Controllers
+@using SGB_Project.Models
+@using SGB_Project.Models
+@using SGB_Project.Controllers
+@using SGB_Project.Models
+@inject SGB_Project.Controllers.EmprestimoService EmprestimoService
+@inject SGB_Project.Controllers.LeitorService LeitorService
+@inject SGB_Project.Controllers.LivroService LivroService
+
+<h3>Realizar Novo Empréstimo</h3>
+
+<EditForm Model="@novoEmprestimo" OnValidSubmit="SalvarEmprestimo">
+    <DataAnnotationsValidator />
+    <div class="card mb-4">
+        <div class="card-header">
+            Dados do Empréstimo
+        </div>
+        <div class="card-body">
+            <div class="mb-3">
+                <label>Selecione o Leitor:</label>
+                <InputSelect class="form-select" @bind-Value="novoEmprestimo.IdLeitor">
+                    <option value="0">-- Selecione --</option>
+                    @if (listaLeitores != null)
+                    {
+                        @foreach (var leitor in listaLeitores)
+                        {
+                            <option value="@leitor.IdLeitor">@leitor.Nome</option>
+                        }
+                    }
+                </InputSelect>
+            </div>
+            <div class="mb-3">
+                <label>Selecione os Livros (com estoque > 0):</label>
+                <div class="list-group" style="max-height: 200px; overflow-y: auto;">
+                    @if (listaLivros != null)
+                    {
+                        @foreach (var livro in listaLivros.Where(l => l.Estoque > 0))
+                        {
+                            <label class="list-group-item">
+                                <input type="checkbox" class="form-check-input me-1"
+                                       @onchange="eventArgs => SelecionarLivro(livro, eventArgs.Value)" />
+                                @livro.Titulo - (@livro.Autor)
+                            </label>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+        <div class="card-footer">
+            <button type="submit" class="btn btn-primary">Salvar Empréstimo</button>
+        </div>
+    </div>
+</EditForm>
+
+@if (mensagem != null)
+{
+    <div class="alert alert-success mt-3">@mensagem</div>
+}
+
+@code {
+    private Emprestimo novoEmprestimo = new();
+    private List<Leitor> listaLeitores;
+    private List<Livro> listaLivros;
+    private HashSet<int> livrosSelecionadosIds = new();
+    private string mensagem;
+
+    protected override async Task OnInitializedAsync()
+    {
+        listaLeitores = await LeitorService.ListarAsync();
+        listaLivros = await LivroService.ListarAsync();
+    }
+
+    private void SelecionarLivro(Livro livro, object isChecked)
+    {
+        if ((bool)isChecked)
+        {
+            livrosSelecionadosIds.Add(livro.IdLivro);
+        }
+        else
+        {
+            livrosSelecionadosIds.Remove(livro.IdLivro);
+        }
+    }
+
+    private async Task SalvarEmprestimo()
+    {
+        if (novoEmprestimo.IdLeitor == 0 || !livrosSelecionadosIds.Any())
+        {
+            mensagem = "Por favor, selecione um leitor e pelo menos um livro.";
+            return;
+        }
+
+        novoEmprestimo.DataEmprestimo = DateTime.Now;
+        novoEmprestimo.EmprestimoItens = livrosSelecionadosIds.Select(livroId => new EmprestimoItem { IdLivro = livroId }).ToList();
+
+        await EmprestimoService.AdicionarAsync(novoEmprestimo);
+
+        mensagem = "Empréstimo realizado com sucesso!";
+        novoEmprestimo = new();
+        livrosSelecionadosIds.Clear();
+        // Em um sistema real, seria bom atualizar a lista de livros para refletir o novo estoque.
+    }
+}

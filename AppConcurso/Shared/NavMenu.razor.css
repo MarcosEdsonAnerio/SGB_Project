@@ -1,0 +1,89 @@
+.navbar-toggler {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.top-row {
+    height: 3.5rem;
+    background-color: rgba(0,0,0,0.4);
+}
+
+.navbar-brand {
+    font-size: 1.1rem;
+}
+
+.oi {
+    width: 2rem;
+    font-size: 1.1rem;
+    vertical-align: text-top;
+    top: -2px;
+}
+
+/*
+ * NOVO ESTILO ADICIONADO PARA OS TÍTULOS DAS CATEGORIAS
+ * Este bloco de código cria o estilo para os títulos como "Movimentação" e "Cadastros".
+*/
+.nav-heading {
+    font-size: 0.8rem; /* Tamanho da fonte menor para diferenciar dos links */
+    font-weight: 600; /* Fonte em negrito */
+    text-transform: uppercase; /* Texto em maiúsculas */
+    color: rgba(255, 255, 255, 0.5); /* Cor branca com transparência para ser sutil */
+    letter-spacing: 0.05rem; /* Espaçamento entre as letras */
+    padding-top: 1rem; /* Espaço acima do título */
+    padding-bottom: 0.25rem; /* Pequeno espaço abaixo do título */
+}
+/* FIM DO NOVO ESTILO */
+
+
+.nav-item {
+    font-size: 0.9rem;
+    padding-bottom: 0.5rem;
+}
+
+    /* Removemos o espaçamento extra do primeiro item, pois agora é controlado pelo nav-heading */
+    .nav-item:first-of-type {
+        padding-top: 0;
+    }
+
+    .nav-item:last-of-type {
+        padding-bottom: 1rem;
+    }
+
+    /* Estilos para os links dentro dos itens do menu */
+    .nav-item ::deep a {
+        color: #d7d7d7;
+        border-radius: 4px;
+        height: 3rem;
+        display: flex;
+        align-items: center;
+        line-height: 3rem;
+    }
+
+        /* Estilo para o link da página ativa */
+        .nav-item ::deep a.active {
+            background-color: rgba(255,255,255,0.25);
+            color: white;
+        }
+
+        /* Estilo para quando o mouse passa por cima de um link */
+        .nav-item ::deep a:hover {
+            background-color: rgba(255,255,255,0.1);
+            color: white;
+        }
+
+/* Media query para ecrãs maiores (responsividade) */
+@media (min-width: 641px) {
+    .navbar-toggler {
+        display: none;
+    }
+
+    .collapse {
+        /* Nunca recolhe a barra lateral em ecrãs grandes */
+        display: block;
+    }
+
+    .nav-scrollable {
+        /* Permite que a barra lateral role em menus altos */
+        height: calc(100vh - 3.5rem);
+        overflow-y: auto;
+    }
+}

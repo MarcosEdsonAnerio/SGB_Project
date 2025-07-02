@@ -1,0 +1,107 @@
+﻿@page "/leitores"
+@using SGB_Project.Controllers
+@using SGB_Project.Controllers
+@using SGB_Project.Models
+@using SGB_Project.Models
+@using SGB_Project.Controllers
+@using SGB_Project.Models
+@inject SGB_Project.Controllers.LeitorService LeitorService
+
+<h3>Gestão de Leitores</h3>
+
+<EditForm Model="@leitorAtual" OnValidSubmit="SalvarLeitor">
+    <DataAnnotationsValidator />
+    <div class="card mb-4">
+        <div class="card-header">
+            @(leitorAtual.IdLeitor == 0 ? "Adicionar Novo Leitor" : "Editar Leitor")
+        </div>
+        <div class="card-body">
+            <input type="hidden" @bind="leitorAtual.IdLeitor" />
+            <div class="mb-3">
+                <label>Nome:</label>
+                <InputText class="form-control" @bind-Value="leitorAtual.Nome" />
+                <ValidationMessage For="@(() => leitorAtual.Nome)" />
+            </div>
+            <div class="mb-3">
+                <label>CPF:</label>
+                <InputText class="form-control" @bind-Value="leitorAtual.CPF" />
+                <ValidationMessage For="@(() => leitorAtual.CPF)" />
+            </div>
+        </div>
+        <div class="card-footer">
+            <button type="submit" class="btn btn-primary">Salvar</button>
+            <button type="button" class="btn btn-secondary" @onclick="Cancelar">Limpar</button>
+        </div>
+    </div>
+</EditForm>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Nome</th>
+            <th>CPF</th>
+            <th>Ações</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (listaLeitores != null)
+        {
+            @foreach (var leitor in listaLeitores)
+            {
+                <tr>
+                    <td>@leitor.Nome</td>
+                    <td>@leitor.CPF</td>
+                    <td>
+                        <button class="btn btn-sm btn-info" @onclick="() => PrepararEdicao(leitor)">Editar</button>
+                        <button class="btn btn-sm btn-danger" @onclick="() => RemoverLeitor(leitor.IdLeitor)">Excluir</button>
+                    </td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>
+
+@code {
+    private List<Leitor> listaLeitores;
+    private Leitor leitorAtual = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CarregarLeitores();
+    }
+
+    private async Task CarregarLeitores()
+    {
+        listaLeitores = await LeitorService.ListarAsync();
+    }
+
+    private void PrepararEdicao(Leitor leitor)
+    {
+        leitorAtual = new Leitor { IdLeitor = leitor.IdLeitor, Nome = leitor.Nome, CPF = leitor.CPF };
+    }
+
+    private void Cancelar()
+    {
+        leitorAtual = new();
+    }
+
+    private async Task SalvarLeitor()
+    {
+        if (leitorAtual.IdLeitor == 0)
+        {
+            await LeitorService.AdicionarAsync(leitorAtual);
+        }
+        else
+        {
+            await LeitorService.AtualizarAsync(leitorAtual);
+        }
+        Cancelar();
+        await CarregarLeitores();
+    }
+
+    private async Task RemoverLeitor(int id)
+    {
+        await LeitorService.RemoverAsync(id);
+        await CarregarLeitores();
+    }
+}

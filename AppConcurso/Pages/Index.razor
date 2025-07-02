@@ -1,0 +1,104 @@
+﻿@page "/"
+@using SGB_Project.Controllers
+@inject SGB_Project.Controllers.LivroService LivroService
+@inject SGB_Project.Controllers.LeitorService LeitorService
+@inject SGB_Project.Controllers.EmprestimoService EmprestimoService
+
+<PageTitle>Dashboard - SGB_Project</PageTitle>
+
+<div class="container mt-4">
+    <div class="text-center mb-5">
+        <h1 class="display-4">Sistema de Gestão de Biblioteca</h1>
+        <p class="lead text-secondary">
+            Bem-vindo ao painel de controlo. Aqui tem uma visão geral e rápida do estado atual da biblioteca.
+        </p>
+    </div>
+
+    @if (dadosCarregados)
+    {
+        <div class="row text-center">
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <span class="oi oi-book display-4 text-primary"></span>
+                        <h5 class="card-title mt-3">Livros no Acervo</h5>
+                        <p class="display-5 fw-bold">@totalLivros</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <span class="oi oi-people display-4 text-success"></span>
+                        <h5 class="card-title mt-3">Leitores Registados</h5>
+                        <p class="display-5 fw-bold">@totalLeitores</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <span class="oi oi-transfer display-4 text-info"></span>
+                        <h5 class="card-title mt-3">Empréstimos Ativos</h5>
+                        <p class="display-5 fw-bold">@totalEmprestimos</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <p class="text-center"><em>A carregar estatísticas...</em></p>
+    }
+
+
+    <div class="card mt-4">
+        <div class="card-header bg-dark text-white">
+            Funcionalidades do Sistema
+        </div>
+        <div class="card-body">
+            <p class="card-text">Este sistema foi desenvolvido para automatizar a gestão de uma biblioteca, melhorando a eficiência e a experiência de bibliotecários e leitores. [cite: 3, 4, 5]</p>
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item"><b>Cadastros:</b> Gestão completa de Livros e Leitores. [cite: 9]</li>
+                <li class="list-group-item"><b>Consulta de Acervo:</b> Ferramenta de pesquisa com filtros avançados por título, autor e outros. [cite: 10]</li>
+                <li class="list-group-item"><b>Relatórios:</b> Geração de relatórios como os livros mais populares e empréstimos pendentes. [cite: 11, 12]</li>
+                <li class="list-group-item"><b>Funcionalidades Extras:</b> Inclui este dashboard, cálculo automático de multas por atraso e autenticação de utilizadores com diferentes perfis. [cite: 17, 18]</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+@code {
+    private int totalLivros;
+    private int totalLeitores;
+    private int totalEmprestimos;
+    private bool dadosCarregados = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Executa uma tarefa de cada vez, de forma sequencial
+        await CarregarTotalLivros();
+        await CarregarTotalLeitores();
+        await CarregarTotalEmprestimos();
+
+        dadosCarregados = true;
+    }
+
+    private async Task CarregarTotalLivros()
+    {
+        var livros = await LivroService.ListarAsync();
+        totalLivros = livros?.Count ?? 0;
+    }
+
+    private async Task CarregarTotalLeitores()
+    {
+        var leitores = await LeitorService.ListarAsync();
+        totalLeitores = leitores?.Count ?? 0;
+    }
+
+    private async Task CarregarTotalEmprestimos()
+    {
+        var emprestimos = await EmprestimoService.ListarAsync();
+        totalEmprestimos = emprestimos?.Count ?? 0;
+    }
+}
