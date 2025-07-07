@@ -1,0 +1,127 @@
+@page "/diagnose"
+@using Microsoft.EntityFrameworkCore
+@using SGB_Project.Contexto
+@using SGB_Project.Models
+@using System.Text.Json
+@inject SGB_ProjectContext Context
+
+<h3>Diagnóstico do Sistema</h3>
+
+<div class="mb-3">
+    <h4>Teste de Conexão</h4>
+    <button class="btn btn-primary" @onclick="TesteDatabaseConnection">Testar Conexão</button>
+    @if (!string.IsNullOrEmpty(connectionStatus))
+    {
+        <div class="mt-2 @(connectionSuccess ? "text-success" : "text-danger")">
+            @connectionStatus
+        </div>
+    }
+</div>
+
+<div class="mb-3">
+    <h4>Teste de Modelo</h4>
+    <button class="btn btn-primary" @onclick="TesteModelMapping">Testar Mapeamento do Modelo</button>
+    @if (!string.IsNullOrEmpty(modelStatus))
+    {
+        <div class="mt-2 @(modelSuccess ? "text-success" : "text-danger")">
+            <pre>@modelStatus</pre>
+        </div>
+    }
+</div>
+
+<div class="mb-3">
+    <h4>Teste de Consulta</h4>
+    <button class="btn btn-primary" @onclick="TesteQuery">Testar Consulta</button>
+    @if (!string.IsNullOrEmpty(queryStatus))
+    {
+        <div class="mt-2 @(querySuccess ? "text-success" : "text-danger")">
+            <pre>@queryStatus</pre>
+        </div>
+    }
+</div>
+
+@code {
+    private string connectionStatus = "";
+    private bool connectionSuccess;
+    
+    private string modelStatus = "";
+    private bool modelSuccess;
+    
+    private string queryStatus = "";
+    private bool querySuccess;
+
+    private async Task TesteDatabaseConnection()
+    {
+        try
+        {
+            var canConnect = await Context.Database.CanConnectAsync();
+            connectionSuccess = canConnect;
+            connectionStatus = canConnect 
+                ? "Conexão bem-sucedida!" 
+                : "Não foi possível conectar ao banco de dados.";
+        }
+        catch (Exception ex)
+        {
+            connectionSuccess = false;
+            connectionStatus = $"Erro: {ex.Message}";
+        }
+    }
+
+    private void TesteModelMapping()
+    {
+        try
+        {
+            var entityTypes = Context.Model.GetEntityTypes();
+            var sb = new System.Text.StringBuilder();
+            
+            foreach (var entityType in entityTypes)
+            {
+                sb.AppendLine($"Entidade: {entityType.Name}, Tabela: {entityType.GetTableName()}");
+                
+                foreach (var property in entityType.GetProperties())
+                {
+                    sb.AppendLine($"  - {property.Name} => {property.GetColumnName()} ({property.GetColumnType()})");
+                }
+                
+                sb.AppendLine();
+            }
+            
+            modelSuccess = true;
+            modelStatus = sb.ToString();
+        }
+        catch (Exception ex)
+        {
+            modelSuccess = false;
+            modelStatus = $"Erro: {ex.Message}";
+        }
+    }
+
+    private async Task TesteQuery()
+    {
+        try
+        {
+            // Tentar pegar os primeiros empréstimos
+            var query = Context.Emprestimos.Take(5);
+            var sql = query.ToQueryString();
+            
+            queryStatus = $"SQL gerado: {sql}\n\n";
+            
+            var result = await query.ToListAsync();
+            
+            queryStatus += $"Resultados: {result.Count} registros encontrados\n\n";
+            
+            if (result.Count > 0)
+            {
+                var options = new JsonSerializerOptions { WriteIndented = true };
+                queryStatus += JsonSerializer.Serialize(result, options);
+            }
+            
+            querySuccess = true;
+        }
+        catch (Exception ex)
+        {
+            querySuccess = false;
+            queryStatus = $"Erro: {ex.Message}\n\nStackTrace: {ex.StackTrace}";
+        }
+    }
+}

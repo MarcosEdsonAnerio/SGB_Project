@@ -1,0 +1,150 @@
+@page "/relatorio/populares"
+@using SGB_Project.Controllers
+@using SGB_Project.Models
+@inject SGB_Project.Controllers.LivroService LivroService
+
+<h3>Livros Populares</h3>
+
+<div class="card mb-4">
+    <div class="card-header">
+        <span class="oi oi-star" aria-hidden="true"></span> Top Livros Mais Emprestados
+    </div>
+    <div class="card-body">
+        @if (dadosCarregados)
+        {
+            @if (livrosPopulares != null && livrosPopulares.Any())
+            {
+                <div class="row">
+                    @foreach (var livro in livrosPopulares.Take(6))
+                    {
+                        <div class="col-md-4 mb-3">
+                            <div class="card h-100">
+                                <div class="card-body text-center">
+                                    <span class="oi oi-book display-4 text-success"></span>
+                                    <h6 class="card-title mt-2">@livro.Titulo</h6>
+                                    <p class="card-text text-muted">@livro.Autor</p>
+                                    <p class="card-text">
+                                        <span class="badge bg-success fs-6">@livro.QuantidadeEmprestimos empréstimo(s)</span>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-info">
+                    <span class="oi oi-info" aria-hidden="true"></span>
+                    Nenhum empréstimo encontrado. Os livros populares aparecerão após os primeiros empréstimos.
+                </div>
+            }
+        }
+        else
+        {
+            <div class="text-center">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">A carregar...</span>
+                </div>
+                <p class="mt-2">A carregar dados dos livros populares...</p>
+            </div>
+        }
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <span class="oi oi-list" aria-hidden="true"></span> Ranking Completo dos Livros
+    </div>
+    <div class="card-body">
+        @if (dadosCarregados && livrosPopulares != null && livrosPopulares.Any())
+        {
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Posição</th>
+                        <th>Título</th>
+                        <th>Autor</th>
+                        <th>Empréstimos</th>
+                        <th>Popularidade</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{
+                        int posicao = 1;
+                        int totalEmprestimos = livrosPopulares.Sum(x => x.QuantidadeEmprestimos);
+                    }
+                    @foreach (var livro in livrosPopulares)
+                    {
+                        <tr>
+                            <td>
+                                @if (posicao == 1)
+                                {
+                                    <span class="badge bg-warning text-dark">?? @posicao°</span>
+                                }
+                                else if (posicao == 2)
+                                {
+                                    <span class="badge bg-secondary">?? @posicao°</span>
+                                }
+                                else if (posicao == 3)
+                                {
+                                    <span class="badge bg-warning">?? @posicao°</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-light text-dark">@posicao°</span>
+                                }
+                            </td>
+                            <td><strong>@livro.Titulo</strong></td>
+                            <td>@livro.Autor</td>
+                            <td><span class="badge bg-primary">@livro.QuantidadeEmprestimos</span></td>
+                            <td>
+                                @if (totalEmprestimos > 0)
+                                {
+                                    <div class="progress" style="height: 20px;">
+                                        <div class="progress-bar bg-success" role="progressbar" 
+                                             style="width: @(((double)livro.QuantidadeEmprestimos / totalEmprestimos) * 100)%">
+                                            @(Math.Round(((double)livro.QuantidadeEmprestimos / totalEmprestimos) * 100, 1))%
+                                        </div>
+                                    </div>
+                                }
+                            </td>
+                        </tr>
+                        posicao++;
+                    }
+                </tbody>
+            </table>
+        }
+        else if (dadosCarregados)
+        {
+            <div class="alert alert-warning">
+                <span class="oi oi-warning" aria-hidden="true"></span>
+                Ainda não há dados de empréstimos para gerar o ranking de popularidade.
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    private List<LivroPopular>? livrosPopulares;
+    private bool dadosCarregados = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CarregarDados();
+    }
+
+    private async Task CarregarDados()
+    {
+        try
+        {
+            livrosPopulares = await LivroService.BuscarLivrosPopularesAsync(15);
+            dadosCarregados = true;
+        }
+        catch (Exception ex)
+        {
+            dadosCarregados = true;
+            livrosPopulares = new List<LivroPopular>();
+        }
+    }
+}

@@ -1,0 +1,61 @@
+@page "/databaseinfo"
+@using Microsoft.EntityFrameworkCore
+@using SGB_Project.Contexto
+@using System.Reflection
+@inject SGB_ProjectContext Context
+
+<h3>Informações do Banco de Dados</h3>
+
+<h4>Detalhes da Tabela Emprestimos</h4>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Nome da Propriedade</th>
+            <th>Nome da Coluna</th>
+            <th>Tipo de Dado</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var property in GetEntityTypeProperties("Emprestimos"))
+        {
+            <tr>
+                <td>@property.PropertyName</td>
+                <td>@property.ColumnName</td>
+                <td>@property.DataType</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    class PropertyInfo
+    {
+        public string PropertyName { get; set; }
+        public string ColumnName { get; set; }
+        public string DataType { get; set; }
+    }
+
+    private List<PropertyInfo> GetEntityTypeProperties(string tableName)
+    {
+        var result = new List<PropertyInfo>();
+        
+        var entityTypes = Context.Model.GetEntityTypes();
+        var entityType = entityTypes.FirstOrDefault(e => e.GetTableName() == tableName);
+        
+        if (entityType != null)
+        {
+            foreach (var property in entityType.GetProperties())
+            {
+                result.Add(new PropertyInfo 
+                { 
+                    PropertyName = property.Name,
+                    ColumnName = property.GetColumnName(),
+                    DataType = property.GetColumnType()
+                });
+            }
+        }
+        
+        return result;
+    }
+}

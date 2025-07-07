@@ -10,10 +10,10 @@ namespace SGB_Project.Models
         public int IdLivro { get; set; }
 
         [Required]
-        public string Titulo { get; set; }
+        public string Titulo { get; set; } = string.Empty;
 
         [Required]
-        public string Autor { get; set; }
+        public string Autor { get; set; } = string.Empty;
 
         public int Estoque { get; set; }
     }
