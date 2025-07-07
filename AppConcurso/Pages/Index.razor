@@ -1,82 +1,125 @@
-﻿@page "/"
-@using SGB_Project.Controllers
+﻿page "/"
+
 @inject SGB_Project.Controllers.LivroService LivroService
 @inject SGB_Project.Controllers.LeitorService LeitorService
 @inject SGB_Project.Controllers.EmprestimoService EmprestimoService
-
-<PageTitle>Dashboard - SGB_Project</PageTitle>
+@@ -8,82 +7,122 @@
 
 <div class="container mt-4">
     <div class="text-center mb-5">
-        <h1 class="display-4">Sistema de Gestão de Biblioteca</h1>
-        <p class="lead text-secondary">
-            Bem-vindo ao painel de controlo. Aqui tem uma visão geral e rápida do estado atual da biblioteca.
-        </p>
+        <h1 class="display-4">📚 Sistema de Gestão de Biblioteca</h1>
+        <p class="lead text-secondary">Visão geral do estado atual da biblioteca.</p>
+
+
     </div>
 
     @if (dadosCarregados)
     {
         <div class="row text-center">
-            <div class="col-md-4 mb-4">
-                <div class="card h-100">
+            @* Card: Total de Livros *@
+            <div class="col-md-3 mb-4">
+                <div class="card border-primary shadow h-100">
                     <div class="card-body">
-                        <span class="oi oi-book display-4 text-primary"></span>
-                        <h5 class="card-title mt-3">Livros no Acervo</h5>
-                        <p class="display-5 fw-bold">@totalLivros</p>
+                        <i class="bi bi-book display-4 text-primary"></i>
+                        <h6 class="mt-2">Livros no Acervo</h6>
+                        <h3>@totalLivros</h3>
                     </div>
                 </div>
             </div>
-            <div class="col-md-4 mb-4">
-                <div class="card h-100">
+
+            @* Card: Leitores *@
+            <div class="col-md-3 mb-4">
+                <div class="card border-success shadow h-100">
                     <div class="card-body">
-                        <span class="oi oi-people display-4 text-success"></span>
-                        <h5 class="card-title mt-3">Leitores Registados</h5>
-                        <p class="display-5 fw-bold">@totalLeitores</p>
+                        <i class="bi bi-people display-4 text-success"></i>
+                        <h6 class="mt-2">Leitores Registrados</h6>
+                        <h3>@totalLeitores</h3>
                     </div>
                 </div>
             </div>
-            <div class="col-md-4 mb-4">
-                <div class="card h-100">
+
+            @* Card: Empréstimos Ativos *@
+            <div class="col-md-3 mb-4">
+                <div class="card border-info shadow h-100">
                     <div class="card-body">
-                        <span class="oi oi-transfer display-4 text-info"></span>
-                        <h5 class="card-title mt-3">Empréstimos Ativos</h5>
-                        <p class="display-5 fw-bold">@totalEmprestimos</p>
+                        <i class="bi bi-arrow-left-right display-4 text-info"></i>
+                        <h6 class="mt-2">Empréstimos Ativos</h6>
+                        <h3>@totalEmprestimos</h3>
                     </div>
                 </div>
+            </div>
+
+            @* Card: Livros Atrasados (Exemplo Estático) *@
+            <div class="col-md-3 mb-4">
+                <div class="card border-danger shadow h-100">
+                    <div class="card-body">
+                        <i class="bi bi-clock display-4 text-danger"></i>
+                        <h6 class="mt-2">Livros Atrasados</h6>
+                        <h3>@livrosAtrasados</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @* Gráfico de Exemplo *@
+        <div class="card mt-4">
+            <div class="card-header bg-primary text-white">
+                Estatísticas Mensais
+            </div>
+            <div class="card-body">
+                <canvas id="graficoDashboard" width="400" height="150"></canvas>
+            </div>
+        </div>
+
+        @* Funcionalidades do sistema *@
+        <div class="card mt-4">
+            <div class="card-header bg-dark text-white">Funcionalidades do Sistema</div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item"><b>Cadastros:</b> Livros, Leitores, Categorias</li>
+                    <li class="list-group-item"><b>Consultas:</b> Pesquisa por título, autor, etc.</li>
+                    <li class="list-group-item"><b>Relatórios:</b> Empréstimos pendentes, livros mais lidos</li>
+                    <li class="list-group-item"><b>Outros:</b> Multas automáticas, autenticação de usuários</li>
+                </ul>
             </div>
         </div>
     }
     else
     {
-        <p class="text-center"><em>A carregar estatísticas...</em></p>
+        <p class="text-center"><em>Carregando estatísticas...</em></p>
     }
 
 
-    <div class="card mt-4">
-        <div class="card-header bg-dark text-white">
-            Funcionalidades do Sistema
-        </div>
-        <div class="card-body">
-            <p class="card-text">Este sistema foi desenvolvido para automatizar a gestão de uma biblioteca, melhorando a eficiência e a experiência de bibliotecários e leitores. [cite: 3, 4, 5]</p>
-            <ul class="list-group list-group-flush">
-                <li class="list-group-item"><b>Cadastros:</b> Gestão completa de Livros e Leitores. [cite: 9]</li>
-                <li class="list-group-item"><b>Consulta de Acervo:</b> Ferramenta de pesquisa com filtros avançados por título, autor e outros. [cite: 10]</li>
-                <li class="list-group-item"><b>Relatórios:</b> Geração de relatórios como os livros mais populares e empréstimos pendentes. [cite: 11, 12]</li>
-                <li class="list-group-item"><b>Funcionalidades Extras:</b> Inclui este dashboard, cálculo automático de multas por atraso e autenticação de utilizadores com diferentes perfis. [cite: 17, 18]</li>
-            </ul>
-        </div>
-    </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 </div>
 
 @code {
     private int totalLivros;
     private int totalLeitores;
     private int totalEmprestimos;
+    private int livrosAtrasados = 7;
     private bool dadosCarregados = false;
+    private bool jsExecutado = false;
+
+    [Inject]
+    public IJSRuntime JS { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
-        // Executa uma tarefa de cada vez, de forma sequencial
+
         await CarregarTotalLivros();
         await CarregarTotalLeitores();
         await CarregarTotalEmprestimos();
@@ -84,20 +127,25 @@
         dadosCarregados = true;
     }
 
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && dadosCarregados)
+        {
+            try
+            {
+                await JS.InvokeVoidAsync("renderizarGraficoDashboard");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erro ao chamar JS: {ex.Message}");
+            }
+        }
+    }
+
     private async Task CarregarTotalLivros()
     {
         var livros = await LivroService.ListarAsync();
-        totalLivros = livros?.Count ?? 0;
-    }
-
-    private async Task CarregarTotalLeitores()
-    {
-        var leitores = await LeitorService.ListarAsync();
-        totalLeitores = leitores?.Count ?? 0;
-    }
-
-    private async Task CarregarTotalEmprestimos()
-    {
+@@ -101,4 +140,4 @@
         var emprestimos = await EmprestimoService.ListarAsync();
         totalEmprestimos = emprestimos?.Count ?? 0;
     }

@@ -61,5 +61,32 @@ namespace SGB_Project.Controllers
 
             return livrosPorAutor;
         }
+
+        public async Task<List<LivroPopular>> BuscarLivrosPopularesAsync(int topN = 10)
+        {
+            var livrosPopulares = await _context.EmprestimoItens
+                .Include(ei => ei.Livro)
+                .GroupBy(ei => new { ei.IdLivro, ei.Livro.Titulo, ei.Livro.Autor })
+                .Select(g => new LivroPopular
+                {
+                    IdLivro = g.Key.IdLivro,
+                    Titulo = g.Key.Titulo,
+                    Autor = g.Key.Autor,
+                    QuantidadeEmprestimos = g.Count()
+                })
+                .OrderByDescending(x => x.QuantidadeEmprestimos)
+                .Take(topN)
+                .ToListAsync();
+
+            return livrosPopulares;
+        }
+    }
+
+    public class LivroPopular
+    {
+        public int IdLivro { get; set; }
+        public string Titulo { get; set; } = string.Empty;
+        public string Autor { get; set; } = string.Empty;
+        public int QuantidadeEmprestimos { get; set; }
     }
 }

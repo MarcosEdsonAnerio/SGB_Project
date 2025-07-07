@@ -1,0 +1,199 @@
+@page "/relatorio/pendentes"
+@using SGB_Project.Controllers
+@using SGB_Project.Models
+@inject SGB_Project.Controllers.EmprestimoService EmprestimoService
+
+<h3>Empréstimos Pendentes</h3>
+
+<div class="card mb-4">
+    <div class="card-header">
+        <span class="oi oi-clock" aria-hidden="true"></span> Resumo dos Empréstimos Pendentes
+    </div>
+    <div class="card-body">
+        @if (dadosCarregados)
+        {
+            @if (emprestimosPendentes != null && emprestimosPendentes.Any())
+            {
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <div class="card h-100 border-warning">
+                            <div class="card-body text-center">
+                                <span class="oi oi-warning display-4 text-warning"></span>
+                                <h6 class="card-title mt-2">Total Pendentes</h6>
+                                <p class="card-text">
+                                    <span class="badge bg-warning text-dark fs-6">@emprestimosPendentes.Count empréstimo(s)</span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="card h-100 border-danger">
+                            <div class="card-body text-center">
+                                <span class="oi oi-clock display-4 text-danger"></span>
+                                <h6 class="card-title mt-2">Em Atraso</h6>
+                                <p class="card-text">
+                                    <span class="badge bg-danger fs-6">@emprestimosPendentes.Count(e => e.DiasAtraso > 0) empréstimo(s)</span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="card h-100 border-success">
+                            <div class="card-body text-center">
+                                <span class="oi oi-check display-4 text-success"></span>
+                                <h6 class="card-title mt-2">No Prazo</h6>
+                                <p class="card-text">
+                                    <span class="badge bg-success fs-6">@emprestimosPendentes.Count(e => e.DiasAtraso <= 0) empréstimo(s)</span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-success">
+                    <span class="oi oi-check" aria-hidden="true"></span>
+                    Parabéns! Não há empréstimos pendentes no momento.
+                </div>
+            }
+        }
+        else
+        {
+            <div class="text-center">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">A carregar...</span>
+                </div>
+                <p class="mt-2">A carregar empréstimos pendentes...</p>
+            </div>
+        }
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <span class="oi oi-list" aria-hidden="true"></span> Lista de Empréstimos Pendentes
+    </div>
+    <div class="card-body">
+        @if (dadosCarregados && emprestimosPendentes != null && emprestimosPendentes.Any())
+        {
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Leitor</th>
+                        <th>Data Empréstimo</th>
+                        <th>Livros</th>
+                        <th>Status</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var emprestimo in emprestimosPendentes)
+                    {
+                        <tr class="@(emprestimo.DiasAtraso > 0 ? "table-danger" : emprestimo.DiasAtraso > -5 ? "table-warning" : "")">
+                            <td><strong>@emprestimo.NomeLeitor</strong></td>
+                            <td>@emprestimo.DataEmprestimo.ToString("dd/MM/yyyy")</td>
+                            <td>
+                                @foreach (var livro in emprestimo.Livros)
+                                {
+                                    <div class="mb-1">
+                                        <small class="text-muted">@livro.Titulo - @livro.Autor</small>
+                                    </div>
+                                }
+                            </td>
+                            <td>
+                                @if (emprestimo.DiasAtraso > 0)
+                                {
+                                    <span class="badge bg-danger">@emprestimo.DiasAtraso dia(s) de atraso</span>
+                                }
+                                else if (emprestimo.DiasAtraso > -5)
+                                {
+                                    <span class="badge bg-warning text-dark">Vence em @(-emprestimo.DiasAtraso) dia(s)</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-success">No prazo (@(-emprestimo.DiasAtraso) dias restantes)</span>
+                                }
+                            </td>
+                            <td>
+                                <button class="btn btn-sm btn-success" 
+                                        @onclick="() => MarcarComoDevolvidoAsync(emprestimo.IdEmprestimo)"
+                                        disabled="@processandoDevolucao">
+                                    <span class="oi oi-check" aria-hidden="true"></span> Marcar como Devolvido
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else if (dadosCarregados)
+        {
+            <div class="alert alert-info">
+                <span class="oi oi-info" aria-hidden="true"></span>
+                Não há empréstimos pendentes no momento.
+            </div>
+        }
+    </div>
+</div>
+
+@if (!string.IsNullOrEmpty(mensagem))
+{
+    <div class="alert alert-success mt-3">
+        <span class="oi oi-check" aria-hidden="true"></span>
+        @mensagem
+    </div>
+}
+
+@code {
+    private List<EmprestimoPendente>? emprestimosPendentes;
+    private bool dadosCarregados = false;
+    private bool processandoDevolucao = false;
+    private string mensagem = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CarregarDados();
+    }
+
+    private async Task CarregarDados()
+    {
+        try
+        {
+            emprestimosPendentes = await EmprestimoService.BuscarEmprestimosPendentesAsync();
+            dadosCarregados = true;
+        }
+        catch (Exception ex)
+        {
+            dadosCarregados = true;
+            emprestimosPendentes = new List<EmprestimoPendente>();
+        }
+    }
+
+    private async Task MarcarComoDevolvidoAsync(int idEmprestimo)
+    {
+        processandoDevolucao = true;
+        try
+        {
+            await EmprestimoService.MarcarComoDevolvido(idEmprestimo);
+            mensagem = "Empréstimo marcado como devolvido com sucesso!";
+            
+            // Recarregar a lista
+            await CarregarDados();
+            
+            // Limpar mensagem após 3 segundos
+            await Task.Delay(3000);
+            mensagem = string.Empty;
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            mensagem = "Erro ao marcar empréstimo como devolvido. Tente novamente.";
+        }
+        finally
+        {
+            processandoDevolucao = false;
+            StateHasChanged();
+        }
+    }
+}

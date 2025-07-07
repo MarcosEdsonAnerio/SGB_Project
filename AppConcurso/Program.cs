@@ -6,38 +6,76 @@ using SGB_Project.Controllers;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// --- Início do Registro de Serviços ---
+// --- Inï¿½cio do Registro de Serviï¿½os ---
 
-// Adiciona os serviços padrão do Blazor
+// Adiciona os serviï¿½os padrï¿½o do Blazor
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 
-// Adiciona os nossos serviços de aplicação, seguindo o seu padrão
-// Cada serviço é registrado com um escopo de vida por requisição
+// Adiciona os nossos serviï¿½os de aplicaï¿½ï¿½o, seguindo o seu padrï¿½o
+// Cada serviï¿½o ï¿½ registrado com um escopo de vida por requisiï¿½ï¿½o
 builder.Services.AddScoped<LeitorService>();
 builder.Services.AddScoped<LivroService>();
 builder.Services.AddScoped<EmprestimoService>();
 builder.Services.AddScoped<EmprestimoItemService>();
 
 // Configura o Contexto do Banco de Dados para MySQL
-// Pega a string de conexão do ficheiro appsettings.json
+// Pega a string de conexï¿½o do ficheiro appsettings.json
 string mySqlConexao = builder.Configuration.GetConnectionString("BaseConexaoMySql");
 
 // Registra o SGB_ProjectContext usando um Pool (para melhor performance) e o provedor MySQL
 builder.Services.AddDbContextPool<SGB_ProjectContext>(options =>
     options.UseMySql(mySqlConexao, ServerVersion.AutoDetect(mySqlConexao))
+           .LogTo(_ => {}, LogLevel.Error) // Apenas logs de erro
 );
 
-// --- Fim do Registro de Serviços ---
+// --- Fim do Registro de Serviï¿½os ---
 
 var app = builder.Build();
 
-// Configura o pipeline de requisições HTTP
+// Configura o pipeline de requisiï¿½ï¿½es HTTP
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error");
-    // O valor padrão de HSTS é de 30 dias.
+    // O valor padrï¿½o de HSTS ï¿½ de 30 dias.
     app.UseHsts();
+}
+
+// Aplica as migraÃ§Ãµes pendentes no startup da aplicaÃ§Ã£o
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var context = services.GetRequiredService<SGB_ProjectContext>();
+        
+        // Inicializa o banco de dados silenciosamente
+        try
+        {
+            // Verifica se tabelas existem e cria a tabela EmprestimoStatus se necessÃ¡rio
+            bool tablesExist = context.Leitores.AnyAsync().GetAwaiter().GetResult();
+            
+            if (!tablesExist)
+            {
+                context.Database.MigrateAsync().GetAwaiter().GetResult();
+            }
+            
+            context.Database.ExecuteSqlRawAsync(@"
+                CREATE TABLE IF NOT EXISTS EmprestimoStatus (
+                    IdEmprestimo INT PRIMARY KEY,
+                    DataDevolucao DATETIME NOT NULL,
+                    FOREIGN KEY (IdEmprestimo) REFERENCES Emprestimos(IdEmprestimo) ON DELETE CASCADE
+                );").GetAwaiter().GetResult();
+        }
+        catch
+        {
+            // Silencia erros de inicializaÃ§Ã£o do banco
+        }
+    }
+    catch
+    {
+        // Silencia erros de inicializaÃ§Ã£o do banco
+    }
 }
 
 app.UseHttpsRedirection();

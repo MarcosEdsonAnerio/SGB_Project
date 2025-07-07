@@ -10,9 +10,9 @@ namespace SGB_Project.Models
         public int IdLeitor { get; set; }
 
         [Required]
-        public string Nome { get; set; }
+        public string Nome { get; set; } = string.Empty;
 
         [Required]
-        public string CPF { get; set; }
+        public string CPF { get; set; } = string.Empty;
     }
 }

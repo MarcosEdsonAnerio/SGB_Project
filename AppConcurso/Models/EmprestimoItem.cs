@@ -12,9 +12,9 @@ namespace SGB_Project.Models
 
         // Propriedades de Navegação
         [ForeignKey("IdEmprestimo")]
-        public Emprestimo Emprestimo { get; set; }
+        public virtual Emprestimo? Emprestimo { get; set; }
 
         [ForeignKey("IdLivro")]
-        public Livro Livro { get; set; }
+        public virtual Livro? Livro { get; set; }
     }
 }
