@@ -1,16 +1,12 @@
-﻿page "/"
-
+﻿﻿@page "/"
 @inject SGB_Project.Controllers.LivroService LivroService
 @inject SGB_Project.Controllers.LeitorService LeitorService
 @inject SGB_Project.Controllers.EmprestimoService EmprestimoService
-@@ -8,82 +7,122 @@
 
 <div class="container mt-4">
     <div class="text-center mb-5">
         <h1 class="display-4">📚 Sistema de Gestão de Biblioteca</h1>
         <p class="lead text-secondary">Visão geral do estado atual da biblioteca.</p>
-
-
     </div>
 
     @if (dadosCarregados)
@@ -49,7 +45,7 @@
                 </div>
             </div>
 
-            @* Card: Livros Atrasados (Exemplo Estático) *@
+            @* Card: Livros Atrasados *@
             <div class="col-md-3 mb-4">
                 <div class="card border-danger shadow h-100">
                     <div class="card-body">
@@ -88,22 +84,6 @@
     {
         <p class="text-center"><em>Carregando estatísticas...</em></p>
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 </div>
 
 @code {
@@ -119,7 +99,6 @@
 
     protected override async Task OnInitializedAsync()
     {
-
         await CarregarTotalLivros();
         await CarregarTotalLeitores();
         await CarregarTotalEmprestimos();
@@ -145,7 +124,17 @@
     private async Task CarregarTotalLivros()
     {
         var livros = await LivroService.ListarAsync();
-@@ -101,4 +140,4 @@
+        totalLivros = livros?.Count ?? 0;
+    }
+
+    private async Task CarregarTotalLeitores()
+    {
+        var leitores = await LeitorService.ListarAsync();
+        totalLeitores = leitores?.Count ?? 0;
+    }
+
+    private async Task CarregarTotalEmprestimos()
+    {
         var emprestimos = await EmprestimoService.ListarAsync();
         totalEmprestimos = emprestimos?.Count ?? 0;
     }
