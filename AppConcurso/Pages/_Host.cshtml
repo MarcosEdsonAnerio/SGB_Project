@@ -70,8 +70,8 @@
 <body>
     <div class="main-container">
         <header>
-            <h1>Bem-vindo ao App Concurso</h1>
-            <p>Seu portal para concursos, provas e resultados!</p>
+            <h1>Bem-vindo ao Sistema de Gestão de Biblioteca</h1>
+            <p>Seu portal para Gerenciamento de livros</p>
         </header>
         <component type="typeof(App)" render-mode="ServerPrerendered" />
     </div>
@@ -88,12 +88,15 @@
     </div>
 
     <script src="_framework/blazor.server.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="js/dashboard.js"></script>
+
     <script>
-        // Exibe o erro do Blazor se necessário
         window.addEventListener('blazor:error', function () {
             document.getElementById('blazor-error-ui').classList.add('show');
         });
-        document.querySelector('#blazor-error-ui .dismiss').addEventListener('click', function () {
+        document.querySelector('#blazor-error-ui .dismiss')?.addEventListener('click', function () {
             document.getElementById('blazor-error-ui').classList.remove('show');
         });
     </script>
