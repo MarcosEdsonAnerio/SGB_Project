@@ -1,0 +1,197 @@
+@page "/profile"
+@attribute [Authorize]
+@using SGB_Project.Controllers
+@using SGB_Project.Models
+@inject UsuarioService UsuarioService
+@inject AuthenticationService AuthService
+@inject NavigationManager NavigationManager
+
+<PageTitle>Meu Perfil - Sistema de Gestão de Biblioteca</PageTitle>
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h3><i class="bi bi-person-circle me-2"></i>Meu Perfil</h3>
+                </div>
+                <div class="card-body">
+                    @if (isLoading)
+                    {
+                        <div class="text-center p-4">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Carregando...</span>
+                            </div>
+                            <p class="mt-2">Carregando seus dados...</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <EditForm Model="@usuarioModel" OnValidSubmit="SalvarPerfil">
+                            <DataAnnotationsValidator />
+                            
+                            @if (!string.IsNullOrEmpty(errorMessage))
+                            {
+                                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                    <i class="bi bi-exclamation-triangle-fill me-2"></i>@errorMessage
+                                    <button type="button" class="btn-close" @onclick="() => errorMessage = string.Empty"></button>
+                                </div>
+                            }
+                            
+                            @if (sucessoSalvar)
+                            {
+                                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                                    <i class="bi bi-check-circle-fill me-2"></i>Perfil atualizado com sucesso!
+                                    <button type="button" class="btn-close" @onclick="() => sucessoSalvar = false"></button>
+                                </div>
+                            }
+                            
+                            <div class="mb-3">
+                                <label for="nome" class="form-label">Nome</label>
+                                <InputText id="nome" class="form-control" @bind-Value="usuarioModel.Nome" />
+                                <ValidationMessage For="@(() => usuarioModel.Nome)" class="text-danger" />
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="email" class="form-label">Email</label>
+                                <InputText id="email" class="form-control" @bind-Value="usuarioModel.Email" disabled />
+                                <ValidationMessage For="@(() => usuarioModel.Email)" class="text-danger" />
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="novaSenha" class="form-label">Nova Senha (deixe em branco para manter a atual)</label>
+                                <InputText id="novaSenha" type="password" class="form-control" @bind-Value="usuarioModel.NovaSenha" />
+                                <ValidationMessage For="@(() => usuarioModel.NovaSenha)" class="text-danger" />
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label for="confirmarSenha" class="form-label">Confirmar Nova Senha</label>
+                                <InputText id="confirmarSenha" type="password" class="form-control" @bind-Value="usuarioModel.ConfirmarSenha" />
+                                <ValidationMessage For="@(() => usuarioModel.ConfirmarSenha)" class="text-danger" />
+                            </div>
+                            
+                            <div class="d-flex justify-content-between">
+                                <button type="button" class="btn btn-secondary" @onclick="@(() => NavigationManager.NavigateTo("/"))">
+                                    <i class="bi bi-arrow-left me-1"></i> Voltar
+                                </button>
+                                <button type="submit" class="btn btn-primary" disabled="@isSaving">
+                                    @if (isSaving)
+                                    {
+                                        <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                                        <span>Salvando...</span>
+                                    }
+                                    else
+                                    {
+                                        <span><i class="bi bi-save me-1"></i> Salvar Alterações</span>
+                                    }
+                                </button>
+                            </div>
+                        </EditForm>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private PerfilModel usuarioModel = new();
+    private bool isLoading = true;
+    private bool isSaving = false;
+    private bool sucessoSalvar = false;
+    private string errorMessage = string.Empty;
+    private Usuario? usuario;
+    
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var userId = await AuthService.GetUserId();
+            usuario = await UsuarioService.ObterPorIdAsync(userId);
+            
+            if (usuario != null)
+            {
+                usuarioModel.Nome = usuario.Nome;
+                usuarioModel.Email = usuario.Email;
+                usuarioModel.IdUsuario = usuario.IdUsuario;
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Erro ao carregar os dados: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+    
+    private async Task SalvarPerfil()
+    {
+        if (!string.IsNullOrEmpty(usuarioModel.NovaSenha) && usuarioModel.NovaSenha != usuarioModel.ConfirmarSenha)
+        {
+            errorMessage = "As senhas não coincidem";
+            return;
+        }
+        
+        isSaving = true;
+        errorMessage = string.Empty;
+        
+        try
+        {
+            if (usuario != null)
+            {
+                usuario.Nome = usuarioModel.Nome;
+                
+                // Se uma nova senha foi fornecida, atualize-a
+                if (!string.IsNullOrEmpty(usuarioModel.NovaSenha))
+                {
+                    usuario.Senha = usuarioModel.NovaSenha;
+                }
+                
+                var result = await UsuarioService.AtualizarAsync(usuario);
+                
+                if (result)
+                {
+                    sucessoSalvar = true;
+                    usuarioModel.NovaSenha = string.Empty;
+                    usuarioModel.ConfirmarSenha = string.Empty;
+                    
+                    // Atualizar o nome do usuário na sessão
+                    await AuthService.Login(usuario.Email, usuarioModel.NovaSenha ?? ""); // Reautenticar para atualizar a sessão
+                }
+                else
+                {
+                    errorMessage = "Não foi possível atualizar o perfil";
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Erro ao salvar o perfil: {ex.Message}";
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+    
+    public class PerfilModel
+    {
+        public int IdUsuario { get; set; }
+        
+        [Required(ErrorMessage = "O nome é obrigatório")]
+        [StringLength(100, ErrorMessage = "O nome deve ter entre 3 e 100 caracteres", MinimumLength = 3)]
+        public string Nome { get; set; } = string.Empty;
+        
+        [Required(ErrorMessage = "O email é obrigatório")]
+        [EmailAddress(ErrorMessage = "Email inválido")]
+        public string Email { get; set; } = string.Empty;
+        
+        [MinLength(6, ErrorMessage = "A senha deve ter pelo menos 6 caracteres")]
+        public string? NovaSenha { get; set; }
+        
+        [Compare("NovaSenha", ErrorMessage = "As senhas não coincidem")]
+        public string? ConfirmarSenha { get; set; }
+    }
+}

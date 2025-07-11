@@ -3,24 +3,33 @@ using Microsoft.AspNetCore.Components.Web;
 using Microsoft.EntityFrameworkCore;
 using SGB_Project.Contexto;
 using SGB_Project.Controllers;
+using Blazored.LocalStorage;
+using Microsoft.AspNetCore.Components.Authorization;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// --- In�cio do Registro de Servi�os ---
+// --- Início do Registro de Serviços ---
 
-// Adiciona os servi�os padr�o do Blazor
+// Adiciona os serviços padrão do Blazor
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 
-// Adiciona os nossos servi�os de aplica��o, seguindo o seu padr�o
-// Cada servi�o � registrado com um escopo de vida por requisi��o
+// Adiciona serviços de autenticação e armazenamento local
+builder.Services.AddBlazoredLocalStorage();
+builder.Services.AddAuthenticationCore();
+builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStateProvider>();
+builder.Services.AddScoped<AuthenticationService>();
+
+// Adiciona os nossos serviços de aplicação, seguindo o seu padrão
+// Cada serviço é registrado com um escopo de vida por requisição
 builder.Services.AddScoped<LeitorService>();
 builder.Services.AddScoped<LivroService>();
 builder.Services.AddScoped<EmprestimoService>();
 builder.Services.AddScoped<EmprestimoItemService>();
+builder.Services.AddScoped<UsuarioService>();
 
 // Configura o Contexto do Banco de Dados para MySQL
-// Pega a string de conex�o do ficheiro appsettings.json
+// Pega a string de conexão do ficheiro appsettings.json
 string mySqlConexao = builder.Configuration.GetConnectionString("BaseConexaoMySql");
 
 // Registra o SGB_ProjectContext usando um Pool (para melhor performance) e o provedor MySQL
@@ -29,15 +38,15 @@ builder.Services.AddDbContextPool<SGB_ProjectContext>(options =>
            .LogTo(_ => {}, LogLevel.Error) // Apenas logs de erro
 );
 
-// --- Fim do Registro de Servi�os ---
+// --- Fim do Registro de Serviços ---
 
 var app = builder.Build();
 
-// Configura o pipeline de requisi��es HTTP
+// Configura o pipeline de requisições HTTP
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error");
-    // O valor padr�o de HSTS � de 30 dias.
+    // O valor padrão de HSTS é de 30 dias.
     app.UseHsts();
 }
 
@@ -66,6 +75,22 @@ using (var scope = app.Services.CreateScope())
                     DataDevolucao DATETIME NOT NULL,
                     FOREIGN KEY (IdEmprestimo) REFERENCES Emprestimos(IdEmprestimo) ON DELETE CASCADE
                 );").GetAwaiter().GetResult();
+                
+            // Criar a tabela de usuários se não existir
+            context.Database.ExecuteSqlRawAsync(@"
+                CREATE TABLE IF NOT EXISTS Usuarios (
+                    IdUsuario INT AUTO_INCREMENT PRIMARY KEY,
+                    Nome VARCHAR(100) NOT NULL,
+                    Email VARCHAR(100) NOT NULL,
+                    Senha VARCHAR(100) NOT NULL,
+                    TipoUsuario INT NOT NULL DEFAULT 3,
+                    Ativo BOOLEAN NOT NULL DEFAULT TRUE,
+                    DataCadastro DATETIME NOT NULL
+                );").GetAwaiter().GetResult();
+                
+            // Criar o primeiro usuário administrador
+            var usuarioService = services.GetRequiredService<UsuarioService>();
+            usuarioService.CriarPrimeiroUsuarioAsync().GetAwaiter().GetResult();
         }
         catch
         {

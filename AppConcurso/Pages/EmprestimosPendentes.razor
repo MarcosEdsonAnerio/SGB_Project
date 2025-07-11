@@ -1,13 +1,14 @@
 @page "/relatorio/pendentes"
+@attribute [Authorize]
 @using SGB_Project.Controllers
 @using SGB_Project.Models
 @inject SGB_Project.Controllers.EmprestimoService EmprestimoService
 
-<h3>EmprÈstimos Pendentes</h3>
+<h3>Empr√©stimos Pendentes</h3>
 
 <div class="card mb-4">
     <div class="card-header">
-        <span class="oi oi-clock" aria-hidden="true"></span> Resumo dos EmprÈstimos Pendentes
+        <span class="oi oi-clock" aria-hidden="true"></span> Resumo dos Empr√©stimos Pendentes
     </div>
     <div class="card-body">
         @if (dadosCarregados)
@@ -21,7 +22,7 @@
                                 <span class="oi oi-warning display-4 text-warning"></span>
                                 <h6 class="card-title mt-2">Total Pendentes</h6>
                                 <p class="card-text">
-                                    <span class="badge bg-warning text-dark fs-6">@emprestimosPendentes.Count emprÈstimo(s)</span>
+                                    <span class="badge bg-warning text-dark fs-6">@emprestimosPendentes.Count empr√©stimo(s)</span>
                                 </p>
                             </div>
                         </div>
@@ -32,7 +33,7 @@
                                 <span class="oi oi-clock display-4 text-danger"></span>
                                 <h6 class="card-title mt-2">Em Atraso</h6>
                                 <p class="card-text">
-                                    <span class="badge bg-danger fs-6">@emprestimosPendentes.Count(e => e.DiasAtraso > 0) emprÈstimo(s)</span>
+                                    <span class="badge bg-danger fs-6">@emprestimosPendentes.Count(e => e.DiasAtraso > 0) empr√©stimo(s)</span>
                                 </p>
                             </div>
                         </div>
@@ -43,7 +44,7 @@
                                 <span class="oi oi-check display-4 text-success"></span>
                                 <h6 class="card-title mt-2">No Prazo</h6>
                                 <p class="card-text">
-                                    <span class="badge bg-success fs-6">@emprestimosPendentes.Count(e => e.DiasAtraso <= 0) emprÈstimo(s)</span>
+                                    <span class="badge bg-success fs-6">@emprestimosPendentes.Count(e => e.DiasAtraso <= 0) empr√©stimo(s)</span>
                                 </p>
                             </div>
                         </div>
@@ -54,7 +55,7 @@
             {
                 <div class="alert alert-success">
                     <span class="oi oi-check" aria-hidden="true"></span>
-                    ParabÈns! N„o h· emprÈstimos pendentes no momento.
+                    Parab√©ns! N√£o h√° empr√©stimos pendentes no momento.
                 </div>
             }
         }
@@ -64,7 +65,7 @@
                 <div class="spinner-border text-primary" role="status">
                     <span class="visually-hidden">A carregar...</span>
                 </div>
-                <p class="mt-2">A carregar emprÈstimos pendentes...</p>
+                <p class="mt-2">A carregar empr√©stimos pendentes...</p>
             </div>
         }
     </div>
@@ -72,7 +73,7 @@
 
 <div class="card">
     <div class="card-header">
-        <span class="oi oi-list" aria-hidden="true"></span> Lista de EmprÈstimos Pendentes
+        <span class="oi oi-list" aria-hidden="true"></span> Lista de Empr√©stimos Pendentes
     </div>
     <div class="card-body">
         @if (dadosCarregados && emprestimosPendentes != null && emprestimosPendentes.Any())
@@ -81,10 +82,10 @@
                 <thead>
                     <tr>
                         <th>Leitor</th>
-                        <th>Data EmprÈstimo</th>
+                        <th>Data Empr√©stimo</th>
                         <th>Livros</th>
                         <th>Status</th>
-                        <th>AÁıes</th>
+                        <th>A√ß√µes</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -131,7 +132,7 @@
         {
             <div class="alert alert-info">
                 <span class="oi oi-info" aria-hidden="true"></span>
-                N„o h· emprÈstimos pendentes no momento.
+                N√£o h√° empr√©stimos pendentes no momento.
             </div>
         }
     </div>
@@ -176,19 +177,19 @@
         try
         {
             await EmprestimoService.MarcarComoDevolvido(idEmprestimo);
-            mensagem = "EmprÈstimo marcado como devolvido com sucesso!";
+            mensagem = "Empr√©stimo marcado como devolvido com sucesso!";
             
             // Recarregar a lista
             await CarregarDados();
             
-            // Limpar mensagem apÛs 3 segundos
+            // Limpar mensagem ap√≥s 3 segundos
             await Task.Delay(3000);
             mensagem = string.Empty;
             StateHasChanged();
         }
         catch (Exception ex)
         {
-            mensagem = "Erro ao marcar emprÈstimo como devolvido. Tente novamente.";
+            mensagem = "Erro ao marcar empr√©stimo como devolvido. Tente novamente.";
         }
         finally
         {

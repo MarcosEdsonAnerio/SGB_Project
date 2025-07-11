@@ -1,0 +1,138 @@
+@page "/login"
+@using SGB_Project.Controllers
+@using SGB_Project.Models
+@inject AuthenticationService AuthService
+@inject NavigationManager NavigationManager
+@layout LoginLayout
+
+<PageTitle>Login - Sistema de Gestão de Biblioteca</PageTitle>
+
+<div class="container">
+    <div class="row justify-content-center mt-5">
+        <div class="col-md-6">
+            <div class="card shadow-lg">
+                <div class="card-header bg-primary text-white text-center py-3">
+                    <h3><i class="bi bi-book me-2"></i>Sistema de Gestão de Biblioteca</h3>
+                    <p class="mb-0">Faça login para acessar o sistema</p>
+                </div>
+                <div class="card-body p-4">
+                    <EditForm Model="@loginModel" OnValidSubmit="HandleLogin">
+                        <DataAnnotationsValidator />
+                        
+                        @if (!string.IsNullOrEmpty(errorMessage))
+                        {
+                            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                <i class="bi bi-exclamation-triangle-fill me-2"></i>@errorMessage
+                                <button type="button" class="btn-close" @onclick="() => errorMessage = string.Empty"></button>
+                            </div>
+                        }
+                        
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                                <InputText id="email" class="form-control" @bind-Value="loginModel.Email" placeholder="Digite seu email" />
+                            </div>
+                            <ValidationMessage For="@(() => loginModel.Email)" class="text-danger" />
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="password" class="form-label">Senha</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                                <InputText id="password" type="password" class="form-control" @bind-Value="loginModel.Senha" placeholder="Digite sua senha" />
+                            </div>
+                            <ValidationMessage For="@(() => loginModel.Senha)" class="text-danger" />
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg" disabled="@isLoading">
+                                @if (isLoading)
+                                {
+                                    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                    <span>Processando...</span>
+                                }
+                                else
+                                {
+                                    <span>Entrar</span>
+                                }
+                            </button>
+                        </div>
+                    </EditForm>
+                </div>
+                <div class="card-footer text-center py-3">
+                    <div class="small">
+                        <a href="/register" class="text-decoration-none">Não tem uma conta? Registre-se</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private LoginModel loginModel = new();
+    private bool isLoading = false;
+    private string errorMessage = string.Empty;
+
+    protected override void OnInitialized()
+    {
+        // Não fazer verificação de autenticação no OnInitializedAsync 
+        // para evitar problemas com JavaScript interop durante a pré-renderização
+    }
+    
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            if (await AuthService.IsAuthenticated())
+            {
+                NavigationManager.NavigateTo("/");
+            }
+        }
+    }
+
+    private async Task HandleLogin()
+    {
+        isLoading = true;
+        errorMessage = string.Empty;
+
+        try
+        {
+            Console.WriteLine($"Tentando fazer login com o email: {loginModel.Email}");
+            var result = await AuthService.Login(loginModel.Email, loginModel.Senha);
+            
+            if (result)
+            {
+                Console.WriteLine("Login bem-sucedido, redirecionando para a página inicial");
+                NavigationManager.NavigateTo("/", true); // Forçar um recarregamento completo
+            }
+            else
+            {
+                Console.WriteLine("Login falhou: email ou senha inválidos");
+                errorMessage = "Email ou senha inválidos. Tente novamente.";
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erro durante o login: {ex.Message}");
+            errorMessage = $"Erro ao fazer login: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    public class LoginModel
+    {
+        [Required(ErrorMessage = "O email é obrigatório")]
+        [EmailAddress(ErrorMessage = "Email inválido")]
+        public string Email { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "A senha é obrigatória")]
+        [MinLength(6, ErrorMessage = "A senha deve ter pelo menos 6 caracteres")]
+        public string Senha { get; set; } = string.Empty;
+    }
+}

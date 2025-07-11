@@ -1,0 +1,172 @@
+@page "/register"
+@using SGB_Project.Controllers
+@using SGB_Project.Models
+@inject UsuarioService UsuarioService
+@inject NavigationManager NavigationManager
+@layout LoginLayout
+
+<PageTitle>Registro - Sistema de Gestão de Biblioteca</PageTitle>
+
+<div class="container">
+    <div class="row justify-content-center mt-5">
+        <div class="col-md-6">
+            <div class="card shadow-lg">
+                <div class="card-header bg-primary text-white text-center py-3">
+                    <h3><i class="bi bi-book me-2"></i>Sistema de Gestão de Biblioteca</h3>
+                    <p class="mb-0">Crie sua conta para acessar o sistema</p>
+                </div>
+                <div class="card-body p-4">
+                    <EditForm Model="@registroModel" OnValidSubmit="HandleRegistro">
+                        <DataAnnotationsValidator />
+                        
+                        @if (!string.IsNullOrEmpty(errorMessage))
+                        {
+                            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                <i class="bi bi-exclamation-triangle-fill me-2"></i>@errorMessage
+                                <button type="button" class="btn-close" @onclick="() => errorMessage = string.Empty"></button>
+                            </div>
+                        }
+                        
+                        @if (registroSucesso)
+                        {
+                            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                                <i class="bi bi-check-circle-fill me-2"></i>Registro realizado com sucesso! Redirecionando para o login...
+                                <button type="button" class="btn-close" @onclick="() => registroSucesso = false"></button>
+                            </div>
+                        }
+                        
+                        <div class="mb-3">
+                            <label for="nome" class="form-label">Nome Completo</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-person"></i></span>
+                                <InputText id="nome" class="form-control" @bind-Value="registroModel.Nome" placeholder="Digite seu nome completo" />
+                            </div>
+                            <ValidationMessage For="@(() => registroModel.Nome)" class="text-danger" />
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                                <InputText id="email" class="form-control" @bind-Value="registroModel.Email" placeholder="Digite seu email" />
+                            </div>
+                            <ValidationMessage For="@(() => registroModel.Email)" class="text-danger" />
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="senha" class="form-label">Senha</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                                <InputText id="senha" type="password" class="form-control" @bind-Value="registroModel.Senha" placeholder="Digite sua senha" />
+                            </div>
+                            <ValidationMessage For="@(() => registroModel.Senha)" class="text-danger" />
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="confirmarSenha" class="form-label">Confirmar Senha</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-lock-fill"></i></span>
+                                <InputText id="confirmarSenha" type="password" class="form-control" @bind-Value="registroModel.ConfirmarSenha" placeholder="Confirme sua senha" />
+                            </div>
+                            <ValidationMessage For="@(() => registroModel.ConfirmarSenha)" class="text-danger" />
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg" disabled="@isLoading">
+                                @if (isLoading)
+                                {
+                                    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                    <span>Processando...</span>
+                                }
+                                else
+                                {
+                                    <span>Registrar</span>
+                                }
+                            </button>
+                        </div>
+                    </EditForm>
+                </div>
+                <div class="card-footer text-center py-3">
+                    <div class="small">
+                        <a href="/login" class="text-decoration-none">Já tem uma conta? Faça login</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private RegistroModel registroModel = new();
+    private bool isLoading = false;
+    private bool registroSucesso = false;
+    private string errorMessage = string.Empty;
+
+    private async Task HandleRegistro()
+    {
+        if (registroModel.Senha != registroModel.ConfirmarSenha)
+        {
+            errorMessage = "As senhas não coincidem. Tente novamente.";
+            return;
+        }
+        
+        isLoading = true;
+        errorMessage = string.Empty;
+
+        try
+        {
+            var novoUsuario = new Usuario
+            {
+                Nome = registroModel.Nome,
+                Email = registroModel.Email,
+                Senha = registroModel.Senha,
+                TipoUsuario = 3, // Operador (nível básico)
+                Ativo = true,
+                DataCadastro = DateTime.Now
+            };
+            
+            var result = await UsuarioService.CadastrarAsync(novoUsuario);
+            
+            if (result)
+            {
+                registroSucesso = true;
+                registroModel = new RegistroModel(); // Limpa o formulário
+                
+                // Redirecionar para a página de login após 2 segundos
+                await Task.Delay(2000);
+                NavigationManager.NavigateTo("/login");
+            }
+            else
+            {
+                errorMessage = "Não foi possível realizar o cadastro. Este email já pode estar em uso.";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Erro ao realizar o cadastro: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    public class RegistroModel
+    {
+        [Required(ErrorMessage = "O nome é obrigatório")]
+        [StringLength(100, ErrorMessage = "O nome deve ter entre 3 e 100 caracteres", MinimumLength = 3)]
+        public string Nome { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "O email é obrigatório")]
+        [EmailAddress(ErrorMessage = "Email inválido")]
+        public string Email { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "A senha é obrigatória")]
+        [MinLength(6, ErrorMessage = "A senha deve ter pelo menos 6 caracteres")]
+        public string Senha { get; set; } = string.Empty;
+        
+        [Required(ErrorMessage = "A confirmação de senha é obrigatória")]
+        [Compare("Senha", ErrorMessage = "As senhas não coincidem")]
+        public string ConfirmarSenha { get; set; } = string.Empty;
+    }
+}

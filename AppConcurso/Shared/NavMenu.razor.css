@@ -19,17 +19,17 @@
 }
 
 /*
- * NOVO ESTILO ADICIONADO PARA OS TÕTULOS DAS CATEGORIAS
- * Este bloco de cÛdigo cria o estilo para os tÌtulos como "MovimentaÁ„o" e "Cadastros".
+ * NOVO ESTILO ADICIONADO PARA OS T√çTULOS DAS CATEGORIAS
+ * Este bloco de c√≥digo cria o estilo para os t√≠tulos como "Movimenta√ß√£o" e "Cadastros".
 */
 .nav-heading {
     font-size: 0.8rem; /* Tamanho da fonte menor para diferenciar dos links */
     font-weight: 600; /* Fonte em negrito */
-    text-transform: uppercase; /* Texto em mai˙sculas */
-    color: rgba(255, 255, 255, 0.5); /* Cor branca com transparÍncia para ser sutil */
-    letter-spacing: 0.05rem; /* EspaÁamento entre as letras */
-    padding-top: 1rem; /* EspaÁo acima do tÌtulo */
-    padding-bottom: 0.25rem; /* Pequeno espaÁo abaixo do tÌtulo */
+    text-transform: uppercase; /* Texto em mai√∫sculas */
+    color: rgba(255, 255, 255, 0.5); /* Cor branca com transpar√™ncia para ser sutil */
+    letter-spacing: 0.05rem; /* Espa√ßamento entre as letras */
+    padding-top: 1rem; /* Espa√ßo acima do t√≠tulo */
+    padding-bottom: 0.25rem; /* Pequeno espa√ßo abaixo do t√≠tulo */
 }
 /* FIM DO NOVO ESTILO */
 
@@ -39,7 +39,7 @@
     padding-bottom: 0.5rem;
 }
 
-    /* Removemos o espaÁamento extra do primeiro item, pois agora È controlado pelo nav-heading */
+    /* Removemos o espa√ßamento extra do primeiro item, pois agora √© controlado pelo nav-heading */
     .nav-item:first-of-type {
         padding-top: 0;
     }
@@ -58,7 +58,7 @@
         line-height: 3rem;
     }
 
-        /* Estilo para o link da p·gina ativa */
+        /* Estilo para o link da p√°gina ativa */
         .nav-item ::deep a.active {
             background-color: rgba(255,255,255,0.25);
             color: white;
@@ -70,14 +70,14 @@
             color: white;
         }
 
-/* Media query para ecr„s maiores (responsividade) */
+/* Media query para ecr√£s maiores (responsividade) */
 @media (min-width: 641px) {
     .navbar-toggler {
         display: none;
     }
 
     .collapse {
-        /* Nunca recolhe a barra lateral em ecr„s grandes */
+        /* Nunca recolhe a barra lateral em ecr√£s grandes */
         display: block;
     }
 

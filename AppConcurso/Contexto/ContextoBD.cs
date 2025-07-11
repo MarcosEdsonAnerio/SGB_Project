@@ -16,6 +16,7 @@ namespace SGB_Project.Contexto
         public DbSet<Emprestimo> Emprestimos { get; set; }
         public DbSet<EmprestimoItem> EmprestimoItens { get; set; }
         public DbSet<EmprestimoStatus> EmprestimoStatus { get; set; }
+        public DbSet<Usuario> Usuarios { get; set; }
 
         // Adição necessária para o nosso projeto
         protected override void OnModelCreating(ModelBuilder modelBuilder)
