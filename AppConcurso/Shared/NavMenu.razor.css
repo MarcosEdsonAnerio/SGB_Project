@@ -18,28 +18,22 @@
     top: -2px;
 }
 
-/*
- * NOVO ESTILO ADICIONADO PARA OS TÍTULOS DAS CATEGORIAS
- * Este bloco de código cria o estilo para os títulos como "Movimentação" e "Cadastros".
-*/
 .nav-heading {
     font-size: 0.8rem; /* Tamanho da fonte menor para diferenciar dos links */
     font-weight: 600; /* Fonte em negrito */
-    text-transform: uppercase; /* Texto em maiúsculas */
-    color: rgba(255, 255, 255, 0.5); /* Cor branca com transparência para ser sutil */
-    letter-spacing: 0.05rem; /* Espaçamento entre as letras */
-    padding-top: 1rem; /* Espaço acima do título */
-    padding-bottom: 0.25rem; /* Pequeno espaço abaixo do título */
+    text-transform: uppercase; /* Texto em mai�sculas */
+    color: rgba(255, 255, 255, 0.5); /* Cor branca com transpar�ncia para ser sutil */
+    letter-spacing: 0.05rem; /* Espa�amento entre as letras */
+    padding-top: 1rem; /* Espa�o acima do t�tulo */
+    padding-bottom: 0.25rem; /* Pequeno espa�o abaixo do t�tulo */
 }
-/* FIM DO NOVO ESTILO */
-
 
 .nav-item {
     font-size: 0.9rem;
     padding-bottom: 0.5rem;
 }
 
-    /* Removemos o espaçamento extra do primeiro item, pois agora é controlado pelo nav-heading */
+    /* Removemos o espa�amento extra do primeiro item, pois agora � controlado pelo nav-heading */
     .nav-item:first-of-type {
         padding-top: 0;
     }
@@ -58,7 +52,7 @@
         line-height: 3rem;
     }
 
-        /* Estilo para o link da página ativa */
+        /* Estilo para o link da p�gina ativa */
         .nav-item ::deep a.active {
             background-color: rgba(255,255,255,0.25);
             color: white;
@@ -70,14 +64,14 @@
             color: white;
         }
 
-/* Media query para ecrãs maiores (responsividade) */
+/* Media query para ecr�s maiores (responsividade) */
 @media (min-width: 641px) {
     .navbar-toggler {
         display: none;
     }
 
     .collapse {
-        /* Nunca recolhe a barra lateral em ecrãs grandes */
+        /* Nunca recolhe a barra lateral em ecr�s grandes */
         display: block;
     }
 

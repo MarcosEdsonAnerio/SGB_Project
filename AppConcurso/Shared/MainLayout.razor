@@ -38,11 +38,3 @@
         </article>
     </main>
 </div>
-
-@code {
-    private async Task HandleLogout()
-    {
-        await AuthService.Logout();
-        NavigationManager.NavigateTo("/login");
-    }
-}
