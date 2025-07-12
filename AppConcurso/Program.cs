@@ -26,6 +26,7 @@ builder.Services.AddScoped<LeitorService>();
 builder.Services.AddScoped<LivroService>();
 builder.Services.AddScoped<EmprestimoService>();
 builder.Services.AddScoped<EmprestimoItemService>();
+builder.Services.AddScoped<UsuarioService>();
 
 // Configura o Contexto do Banco de Dados para MySQL
 // Pega a string de conexão do ficheiro appsettings.json

@@ -3,105 +3,140 @@
 @inject SGB_Project.Controllers.LivroService LivroService
 @inject SGB_Project.Controllers.LeitorService LeitorService
 @inject SGB_Project.Controllers.EmprestimoService EmprestimoService
-@inject IJSRuntime JS
 
-<div class="container-fluid py-4">
+<div class="container mt-4">
     <div class="text-center mb-5">
-        <h1 class="fw-bold">📚 Biblioteca Digital</h1>
-        <p class="text-muted">Resumo geral do sistema</p>
+        <h1 class="display-4">📚 Sistema de Gestão de Biblioteca</h1>
+        <p class="lead text-secondary">Visão geral do estado atual da biblioteca.</p>
     </div>
 
-    @if (carregado)
+    @if (dadosCarregados)
     {
-        <div class="row row-cols-1 row-cols-md-4 g-4">
-            <div class="col">
-                <div class="card text-white bg-primary shadow rounded-4">
-                    <div class="card-body text-center">
-                        <h5 class="card-title">Livros</h5>
-                        <h1>@totalLivros</h1>
-                        <small>No Acervo</small>
+        <div class="row text-center">
+            @* Card: Total de Livros *@
+            <div class="col-md-3 mb-4">
+                <div class="card border-primary shadow h-100">
+                    <div class="card-body">
+                        <i class="bi bi-book display-4 text-primary"></i>
+                        <h6 class="mt-2">Livros no Acervo</h6>
+                        <h3>@totalLivros</h3>
                     </div>
                 </div>
             </div>
-            <div class="col">
-                <div class="card text-white bg-success shadow rounded-4">
-                    <div class="card-body text-center">
-                        <h5 class="card-title">Leitores</h5>
-                        <h1>@totalLeitores</h1>
-                        <small>Registrados</small>
+
+            @* Card: Leitores *@
+            <div class="col-md-3 mb-4">
+                <div class="card border-success shadow h-100">
+                    <div class="card-body">
+                        <i class="bi bi-people display-4 text-success"></i>
+                        <h6 class="mt-2">Leitores Registrados</h6>
+                        <h3>@totalLeitores</h3>
                     </div>
                 </div>
             </div>
-            <div class="col">
-                <div class="card text-white bg-info shadow rounded-4">
-                    <div class="card-body text-center">
-                        <h5 class="card-title">Empréstimos</h5>
-                        <h1>@totalEmprestimos</h1>
-                        <small>Ativos</small>
+
+            @* Card: Empréstimos Ativos *@
+            <div class="col-md-3 mb-4">
+                <div class="card border-info shadow h-100">
+                    <div class="card-body">
+                        <i class="bi bi-arrow-left-right display-4 text-info"></i>
+                        <h6 class="mt-2">Empréstimos Ativos</h6>
+                        <h3>@totalEmprestimos</h3>
                     </div>
                 </div>
             </div>
-            <div class="col">
-                <div class="card text-white bg-danger shadow rounded-4">
-                    <div class="card-body text-center">
-                        <h5 class="card-title">Atrasados</h5>
-                        <h1>@totalAtrasos</h1>
-                        <small>Livros</small>
+
+            @* Card: Livros Atrasados *@
+            <div class="col-md-3 mb-4">
+                <div class="card border-danger shadow h-100">
+                    <div class="card-body">
+                        <i class="bi bi-clock display-4 text-danger"></i>
+                        <h6 class="mt-2">Livros Atrasados</h6>
+                        <h3>@livrosAtrasados</h3>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="card mt-5 shadow rounded-4">
-            <div class="card-header bg-dark text-white">
-                <h5 class="mb-0">📊 Empréstimos nos Últimos 6 Meses</h5>
-            </div>
-            <div class="card-body">
-                <canvas @ref="graficoRef" id="graficoDashboard" width="100%" height="40"></canvas>
-            </div>
-        </div>
-    }
-    else
-    {
-        <div class="text-center py-5">
-            <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Carregando...</span>
-            </div>
-            <p class="mt-3">Carregando informações...</p>
-        </div>
-    }
+        @* Gráfico de Exemplo *@
+        <div class="card mt-4">
+            <div class="card-header bg-primary text-white">
+                Estatísticas Mensais
+            </div>
+            <div class="card-body">
+                <canvas id="graficoDashboard" width="400" height="150"></canvas>
+            </div>
+        </div>
+
+        @* Funcionalidades do sistema *@
+        <div class="card mt-4">
+            <div class="card-header bg-dark text-white">Funcionalidades do Sistema</div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item"><b>Cadastros:</b> Livros, Leitores, Categorias</li>
+                    <li class="list-group-item"><b>Consultas:</b> Pesquisa por título, autor, etc.</li>
+                    <li class="list-group-item"><b>Relatórios:</b> Empréstimos pendentes, livros mais lidos</li>
+                    <li class="list-group-item"><b>Outros:</b> Multas automáticas, autenticação de usuários</li>
+                </ul>
+            </div>
+        </div>
+    }
+    else
+    {
+        <p class="text-center"><em>Carregando estatísticas...</em></p>
+    }
 </div>
 
 @code {
-    private int totalLivros;
-    private int totalLeitores;
-    private int totalEmprestimos;
-    private int totalAtrasos;
-    private bool carregado = false;
-    private ElementReference graficoRef;
-    private bool jsChamado = false;
+    private int totalLivros;
+    private int totalLeitores;
+    private int totalEmprestimos;
+    private int livrosAtrasados = 7;
+    private bool dadosCarregados = false;
+    private bool jsExecutado = false;
 
+    [Inject]
+    public IJSRuntime JS { get; set; }
 
-    protected override async Task OnInitializedAsync()
-    {
-        totalLivros = (await LivroService.ListarAsync())?.Count ?? 0;
-        totalLeitores = (await LeitorService.ListarAsync())?.Count ?? 0;
-        totalEmprestimos = (await EmprestimoService.ListarAsync())?.Count ?? 0;
-        totalAtrasos = (await EmprestimoService.BuscarEmprestimosPendentesAsync())?.Count ?? 0;
-        carregado = true;
-    }
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-{
-    if (carregado && !jsChamado)
+    protected override async Task OnInitializedAsync()
     {
-        if (graficoRef.Context != null)
+        await CarregarTotalLivros();
+        await CarregarTotalLeitores();
+        await CarregarTotalEmprestimos();
+
+        dadosCarregados = true;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && dadosCarregados)
         {
-            var dados = await EmprestimoService.ContarEmprestimosUltimos6MesesAsync();
-            await JS.InvokeVoidAsync("renderizarGraficoDashboard", dados);
-            jsChamado = true;
+            try
+            {
+                await JS.InvokeVoidAsync("renderizarGraficoDashboard");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erro ao chamar JS: {ex.Message}");
+            }
         }
     }
-}
 
+    private async Task CarregarTotalLivros()
+    {
+        var livros = await LivroService.ListarAsync();
+        totalLivros = livros?.Count ?? 0;
+    }
+
+    private async Task CarregarTotalLeitores()
+    {
+        var leitores = await LeitorService.ListarAsync();
+        totalLeitores = leitores?.Count ?? 0;
+    }
+
+    private async Task CarregarTotalEmprestimos()
+    {
+        var emprestimos = await EmprestimoService.ListarAsync();
+        totalEmprestimos = emprestimos?.Count ?? 0;
+    }
 }
