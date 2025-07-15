@@ -29,11 +29,23 @@ namespace SGB_Project.Controllers
                 if (usuario == null)
                     return false;
 
+                Console.WriteLine($"Usuário encontrado: {usuario.Nome} (ID: {usuario.IdUsuario})");
+
                 await _localStorage.SetItemAsync("userId", usuario.IdUsuario);
                 await _localStorage.SetItemAsync("userName", usuario.Nome);
                 await _localStorage.SetItemAsync("userEmail", usuario.Email);
                 await _localStorage.SetItemAsync("userType", usuario.TipoUsuario);
                 await _localStorage.SetItemAsync("isAuthenticated", true);
+
+                Console.WriteLine("Dados salvos no LocalStorage");
+
+                // Aguardar um pouco para garantir que o LocalStorage foi atualizado
+                await Task.Delay(100);
+
+                // Verificar se os dados foram salvos corretamente
+                var savedUserId = await _localStorage.GetItemAsync<int>("userId");
+                var savedIsAuthenticated = await _localStorage.GetItemAsync<bool>("isAuthenticated");
+                Console.WriteLine($"Verificação pós-salvamento - UserId: {savedUserId}, IsAuthenticated: {savedIsAuthenticated}");
 
                 // Notificar que o estado de autenticação mudou
                 ((CustomAuthenticationStateProvider)_authStateProvider).NotifyAuthenticationStateChanged();
@@ -64,17 +76,21 @@ namespace SGB_Project.Controllers
         {
             try 
             {
-                if (!OperatingSystem.IsBrowser())
-                {
-                    // Durante a pré-renderização, considere o usuário como não autenticado
-                    return false;
-                }
+                // Tentar acessar o localStorage diretamente, se falhar, estamos em pré-renderização
+                var isAuthenticatedValue = await _localStorage.GetItemAsync<bool>("isAuthenticated");
+                var userId = await _localStorage.GetItemAsync<int>("userId");
                 
-                var isAuthenticated = await _localStorage.GetItemAsync<bool>("isAuthenticated");
-                return isAuthenticated;
+                Console.WriteLine($"IsAuthenticated - isAuthenticatedValue: {isAuthenticatedValue}, userId: {userId}");
+                
+                // Verificar se também temos um userId válido
+                var result = isAuthenticatedValue && userId > 0;
+                Console.WriteLine($"IsAuthenticated - resultado final: {result}");
+                
+                return result;
             }
-            catch
+            catch (Exception ex)
             {
+                Console.WriteLine($"Erro ao verificar autenticação (provavelmente pré-renderização): {ex.Message}");
                 return false;
             }
         }
@@ -116,23 +132,25 @@ namespace SGB_Project.Controllers
         {
             try
             {
-                // Durante a pré-renderização, retorne o usuário anônimo para evitar erros de interop JS
-                if (!OperatingSystem.IsBrowser())
+                Console.WriteLine("GetAuthenticationStateAsync - Verificando localStorage");
+                
+                // Tentar acessar o localStorage diretamente
+                var isAuthenticated = await _localStorage.GetItemAsync<bool>("isAuthenticated");
+                var userId = await _localStorage.GetItemAsync<int>("userId");
+                
+                Console.WriteLine($"GetAuthenticationStateAsync - isAuthenticated: {isAuthenticated}, userId: {userId}");
+                
+                if (!isAuthenticated || userId <= 0)
                 {
-                    // Durante a pré-renderização, retorne o usuário anônimo
+                    Console.WriteLine("GetAuthenticationStateAsync - Não autenticado, retornando anônimo");
                     return new AuthenticationState(_anonymous);
                 }
-                
-                // Estamos no browser, então é seguro usar localStorage
-                var isAuthenticated = await _localStorage.GetItemAsync<bool>("isAuthenticated");
-                
-                if (!isAuthenticated)
-                    return new AuthenticationState(_anonymous);
 
-                var userId = await _localStorage.GetItemAsync<int>("userId");
                 var userName = await _localStorage.GetItemAsync<string>("userName");
                 var userEmail = await _localStorage.GetItemAsync<string>("userEmail");
                 var userType = await _localStorage.GetItemAsync<int>("userType");
+
+                Console.WriteLine($"GetAuthenticationStateAsync - Criando usuário autenticado: {userName}");
 
                 // Criar as claims do usuário
                 var claims = new List<Claim>
@@ -148,8 +166,9 @@ namespace SGB_Project.Controllers
 
                 return new AuthenticationState(user);
             }
-            catch
+            catch (Exception ex)
             {
+                Console.WriteLine($"GetAuthenticationStateAsync - Erro (provavelmente pré-renderização): {ex.Message}");
                 return new AuthenticationState(_anonymous);
             }
         }

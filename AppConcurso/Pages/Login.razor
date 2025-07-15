@@ -77,19 +77,8 @@
 
     protected override void OnInitialized()
     {
-        // Não fazer verificação de autenticação no OnInitializedAsync 
-        // para evitar problemas com JavaScript interop durante a pré-renderização
-    }
-    
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
-            if (await AuthService.IsAuthenticated())
-            {
-                NavigationManager.NavigateTo("/");
-            }
-        }
+        // Não fazer verificação de autenticação aqui para evitar problemas
+        // com JavaScript interop durante a pré-renderização
     }
 
     private async Task HandleLogin()
@@ -105,7 +94,33 @@
             if (result)
             {
                 Console.WriteLine("Login bem-sucedido, redirecionando para a página inicial");
-                NavigationManager.NavigateTo("/", true); // Forçar um recarregamento completo
+                
+                // Aguardar mais tempo para garantir que o estado de autenticação foi atualizado
+                await Task.Delay(500);
+                
+                var isAuthenticated = await AuthService.IsAuthenticated();
+                Console.WriteLine($"Estado de autenticação após login: {isAuthenticated}");
+                
+                if (isAuthenticated)
+                {
+                    NavigationManager.NavigateTo("/", true);
+                }
+                else
+                {
+                    Console.WriteLine("Tentando novamente após mais delay...");
+                    await Task.Delay(500);
+                    isAuthenticated = await AuthService.IsAuthenticated();
+                    Console.WriteLine($"Segunda verificação de autenticação: {isAuthenticated}");
+                    
+                    if (isAuthenticated)
+                    {
+                        NavigationManager.NavigateTo("/", true);
+                    }
+                    else
+                    {
+                        errorMessage = "Erro ao processar o login. Tente novamente.";
+                    }
+                }
             }
             else
             {
