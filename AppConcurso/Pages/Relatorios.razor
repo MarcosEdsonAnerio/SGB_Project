@@ -1,0 +1,248 @@
+@page "/relatorios"
+@attribute [Authorize]
+@using SGB_Project.Controllers
+@using Microsoft.JSInterop
+@inject RelatorioService RelatorioService
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Gerar Relatórios - Sistema de Gestão de Biblioteca</PageTitle>
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h3><i class="bi bi-file-earmark-pdf me-2"></i>Gerar Relatórios PDF</h3>
+            <p class="text-muted">Selecione o tipo de relatório que deseja gerar em formato PDF.</p>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrEmpty(mensagem))
+    {
+        <div class="alert alert-info alert-dismissible fade show" role="alert">
+            <i class="bi bi-info-circle me-2"></i>@mensagem
+            <button type="button" class="btn-close" @onclick="() => mensagem = string.Empty"></button>
+        </div>
+    }
+
+    @if (!string.IsNullOrEmpty(erro))
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle me-2"></i>@erro
+            <button type="button" class="btn-close" @onclick="() => erro = string.Empty"></button>
+        </div>
+    }
+
+    <div class="row g-4">
+        <!-- Relatório de Empréstimos Pendentes -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        <i class="bi bi-clock-history display-4 text-warning"></i>
+                    </div>
+                    <h5 class="card-title">Empréstimos Pendentes</h5>
+                    <p class="card-text">Relatório com todos os empréstimos que ainda não foram devolvidos, incluindo status de atraso.</p>
+                    <button class="btn btn-outline-warning" @onclick='() => GerarRelatorio("pendentes")' disabled="@isProcessando">
+                        @if (isProcessando && tipoRelatorioProcessando == "pendentes")
+                        {
+                            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                        }
+                        else
+                        {
+                            <i class="bi bi-download me-2"></i>
+                        }
+                        Gerar PDF
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Relatório de Livros Populares -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        <i class="bi bi-star-fill display-4 text-success"></i>
+                    </div>
+                    <h5 class="card-title">Livros Populares</h5>
+                    <p class="card-text">Ranking dos livros mais emprestados, ordenados por quantidade de empréstimos.</p>
+                    <button class="btn btn-outline-success" @onclick='() => GerarRelatorio("populares")' disabled="@isProcessando">
+                        @if (isProcessando && tipoRelatorioProcessando == "populares")
+                        {
+                            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                        }
+                        else
+                        {
+                            <i class="bi bi-download me-2"></i>
+                        }
+                        Gerar PDF
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Relatório do Acervo -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        <i class="bi bi-book-fill display-4 text-primary"></i>
+                    </div>
+                    <h5 class="card-title">Acervo Completo</h5>
+                    <p class="card-text">Lista completa de todos os livros cadastrados no sistema com informações de estoque.</p>
+                    <button class="btn btn-outline-primary" @onclick='() => GerarRelatorio("acervo")' disabled="@isProcessando">
+                        @if (isProcessando && tipoRelatorioProcessando == "acervo")
+                        {
+                            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                        }
+                        else
+                        {
+                            <i class="bi bi-download me-2"></i>
+                        }
+                        Gerar PDF
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Relatório de Leitores -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        <i class="bi bi-people-fill display-4 text-info"></i>
+                    </div>
+                    <h5 class="card-title">Leitores Cadastrados</h5>
+                    <p class="card-text">Lista de todos os leitores cadastrados no sistema com suas informações básicas.</p>
+                    <button class="btn btn-outline-info" @onclick='() => GerarRelatorio("leitores")' disabled="@isProcessando">
+                        @if (isProcessando && tipoRelatorioProcessando == "leitores")
+                        {
+                            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                        }
+                        else
+                        {
+                            <i class="bi bi-download me-2"></i>
+                        }
+                        Gerar PDF
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-title"><i class="bi bi-info-circle me-2"></i>Informações sobre os Relatórios</h6>
+                    <ul class="list-unstyled mb-0">
+                        <li><i class="bi bi-check-circle text-success me-2"></i>Todos os relatórios são gerados em formato PDF</li>
+                        <li><i class="bi bi-check-circle text-success me-2"></i>Os dados são atualizados em tempo real</li>
+                        <li><i class="bi bi-check-circle text-success me-2"></i>O download inicia automaticamente após a geração</li>
+                        <li><i class="bi bi-check-circle text-success me-2"></i>Os relatórios incluem data e hora de geração</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private bool isProcessando = false;
+    private string tipoRelatorioProcessando = string.Empty;
+    private string mensagem = string.Empty;
+    private string erro = string.Empty;
+
+    private async Task GerarRelatorio(string tipo)
+    {
+        isProcessando = true;
+        tipoRelatorioProcessando = tipo;
+        mensagem = string.Empty;
+        erro = string.Empty;
+        StateHasChanged();
+
+        try
+        {
+            byte[]? pdfBytes = null;
+            string nomeArquivo = string.Empty;
+
+            switch (tipo)
+            {
+                case "pendentes":
+                    mensagem = "Gerando relatório de empréstimos pendentes...";
+                    StateHasChanged();
+                    pdfBytes = await RelatorioService.GerarRelatorioEmprestimosPendentes();
+                    nomeArquivo = $"Emprestimos_Pendentes_{DateTime.Now:yyyyMMdd_HHmmss}.pdf";
+                    break;
+
+                case "populares":
+                    mensagem = "Gerando relatório de livros populares...";
+                    StateHasChanged();
+                    pdfBytes = await RelatorioService.GerarRelatorioLivrosPopulares();
+                    nomeArquivo = $"Livros_Populares_{DateTime.Now:yyyyMMdd_HHmmss}.pdf";
+                    break;
+
+                case "acervo":
+                    mensagem = "Gerando relatório do acervo...";
+                    StateHasChanged();
+                    pdfBytes = await RelatorioService.GerarRelatorioAcervo();
+                    nomeArquivo = $"Acervo_Completo_{DateTime.Now:yyyyMMdd_HHmmss}.pdf";
+                    break;
+
+                case "leitores":
+                    mensagem = "Gerando relatório de leitores...";
+                    StateHasChanged();
+                    pdfBytes = await RelatorioService.GerarRelatorioLeitores();
+                    nomeArquivo = $"Leitores_Cadastrados_{DateTime.Now:yyyyMMdd_HHmmss}.pdf";
+                    break;
+
+                default:
+                    erro = "Tipo de relatório não reconhecido.";
+                    return;
+            }
+
+            if (pdfBytes != null && pdfBytes.Length > 0)
+            {
+                await DownloadPdf(pdfBytes, nomeArquivo);
+                mensagem = $"Relatório '{nomeArquivo}' gerado com sucesso!";
+            }
+            else
+            {
+                erro = "Erro ao gerar o relatório. Nenhum dado foi retornado.";
+            }
+        }
+        catch (Exception ex)
+        {
+            erro = $"Erro ao gerar relatório: {ex.Message}";
+        }
+        finally
+        {
+            isProcessando = false;
+            tipoRelatorioProcessando = string.Empty;
+            StateHasChanged();
+        }
+    }
+
+    private async Task DownloadPdf(byte[] pdfBytes, string nomeArquivo)
+    {
+        try
+        {
+            var base64 = Convert.ToBase64String(pdfBytes);
+            await JSRuntime.InvokeVoidAsync("downloadFile", nomeArquivo, base64);
+        }
+        catch (Exception ex)
+        {
+            erro = $"Erro ao fazer download do arquivo: {ex.Message}";
+        }
+    }
+}
+
+<script>
+    window.downloadFile = (filename, base64Data) => {
+        const link = document.createElement('a');
+        link.href = 'data:application/pdf;base64,' + base64Data;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+</script>
