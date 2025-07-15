@@ -51,14 +51,35 @@ namespace SGB_Project.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
+                name: "Usuarios",
+                columns: table => new
+                {
+                    IdUsuario = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    Nome = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Email = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Senha = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    TipoUsuario = table.Column<int>(type: "int", nullable: false),
+                    Ativo = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    DataCadastro = table.Column<DateTime>(type: "datetime(6)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Usuarios", x => x.IdUsuario);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
                 name: "Emprestimos",
                 columns: table => new
                 {
                     IdEmprestimo = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     IdLeitor = table.Column<int>(type: "int", nullable: false),
-                    DataEmprestimo = table.Column<DateTime>(type: "datetime(6)", nullable: false),
-                    DataDevolucao = table.Column<DateTime>(type: "datetime(6)", nullable: true)
+                    DataEmprestimo = table.Column<DateTime>(type: "datetime(6)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -97,6 +118,25 @@ namespace SGB_Project.Migrations
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
+            migrationBuilder.CreateTable(
+                name: "EmprestimoStatus",
+                columns: table => new
+                {
+                    IdEmprestimo = table.Column<int>(type: "int", nullable: false),
+                    DataDevolucao = table.Column<DateTime>(type: "datetime(6)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_EmprestimoStatus", x => x.IdEmprestimo);
+                    table.ForeignKey(
+                        name: "FK_EmprestimoStatus_Emprestimos_IdEmprestimo",
+                        column: x => x.IdEmprestimo,
+                        principalTable: "Emprestimos",
+                        principalColumn: "IdEmprestimo",
+                        onDelete: ReferentialAction.Cascade);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
             migrationBuilder.CreateIndex(
                 name: "IX_EmprestimoItens_IdLivro",
                 table: "EmprestimoItens",
@@ -115,10 +155,16 @@ namespace SGB_Project.Migrations
                 name: "EmprestimoItens");
 
             migrationBuilder.DropTable(
-                name: "Emprestimos");
+                name: "EmprestimoStatus");
+
+            migrationBuilder.DropTable(
+                name: "Usuarios");
 
             migrationBuilder.DropTable(
                 name: "Livros");
+
+            migrationBuilder.DropTable(
+                name: "Emprestimos");
 
             migrationBuilder.DropTable(
                 name: "Leitores");

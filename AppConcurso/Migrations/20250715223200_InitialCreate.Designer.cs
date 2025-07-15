@@ -11,8 +11,8 @@ using SGB_Project.Contexto;
 namespace SGB_Project.Migrations
 {
     [DbContext(typeof(SGB_ProjectContext))]
-    [Migration("20250707221735_FixEmprestimoDataDevolucao")]
-    partial class FixEmprestimoDataDevolucao
+    [Migration("20250715223200_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -27,9 +27,6 @@ namespace SGB_Project.Migrations
                     b.Property<int>("IdEmprestimo")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
-
-                    b.Property<DateTime?>("DataDevolucao")
-                        .HasColumnType("datetime(6)");
 
                     b.Property<DateTime>("DataEmprestimo")
                         .HasColumnType("datetime(6)");
@@ -57,6 +54,19 @@ namespace SGB_Project.Migrations
                     b.HasIndex("IdLivro");
 
                     b.ToTable("EmprestimoItens");
+                });
+
+            modelBuilder.Entity("SGB_Project.Models.EmprestimoStatus", b =>
+                {
+                    b.Property<int>("IdEmprestimo")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("DataDevolucao")
+                        .HasColumnType("datetime(6)");
+
+                    b.HasKey("IdEmprestimo");
+
+                    b.ToTable("EmprestimoStatus");
                 });
 
             modelBuilder.Entity("SGB_Project.Models.Leitor", b =>
@@ -100,6 +110,41 @@ namespace SGB_Project.Migrations
                     b.ToTable("Livros");
                 });
 
+            modelBuilder.Entity("SGB_Project.Models.Usuario", b =>
+                {
+                    b.Property<int>("IdUsuario")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<bool>("Ativo")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<DateTime>("DataCadastro")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<string>("Nome")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<string>("Senha")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<int>("TipoUsuario")
+                        .HasColumnType("int");
+
+                    b.HasKey("IdUsuario");
+
+                    b.ToTable("Usuarios");
+                });
+
             modelBuilder.Entity("SGB_Project.Models.Emprestimo", b =>
                 {
                     b.HasOne("SGB_Project.Models.Leitor", "Leitor")
@@ -128,6 +173,17 @@ namespace SGB_Project.Migrations
                     b.Navigation("Emprestimo");
 
                     b.Navigation("Livro");
+                });
+
+            modelBuilder.Entity("SGB_Project.Models.EmprestimoStatus", b =>
+                {
+                    b.HasOne("SGB_Project.Models.Emprestimo", "Emprestimo")
+                        .WithMany()
+                        .HasForeignKey("IdEmprestimo")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Emprestimo");
                 });
 
             modelBuilder.Entity("SGB_Project.Models.Emprestimo", b =>

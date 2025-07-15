@@ -29,7 +29,6 @@ namespace SGB_Project.Controllers
                 if (usuario == null)
                     return false;
 
-                // Armazenar informações do usuário na sessão
                 await _localStorage.SetItemAsync("userId", usuario.IdUsuario);
                 await _localStorage.SetItemAsync("userName", usuario.Nome);
                 await _localStorage.SetItemAsync("userEmail", usuario.Email);
