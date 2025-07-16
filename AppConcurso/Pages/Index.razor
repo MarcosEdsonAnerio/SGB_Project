@@ -5,6 +5,9 @@
 @inject SGB_Project.Controllers.EmprestimoService EmprestimoService
 
 <div class="container mt-4">
+    <div class="text-center" style="margin-bottom:0.2rem;">
+        <img src="/LogoSGBPhotoroom.png" alt="Logo SGB" style="height:250px;max-width:400px;object-fit:contain;" />
+    </div>
     <div class="text-center mb-5">
         <h1 class="display-4">📚 Sistema de Gestão de Biblioteca</h1>
         <p class="lead text-secondary">Visão geral do estado atual da biblioteca.</p>
@@ -55,29 +58,6 @@
                         <h3>@livrosAtrasados</h3>
                     </div>
                 </div>
-            </div>
-        </div>
-
-        @* Gráfico de Exemplo *@
-        <div class="card mt-4">
-            <div class="card-header bg-primary text-white">
-                Estatísticas Mensais
-            </div>
-            <div class="card-body">
-                <canvas id="graficoDashboard" width="400" height="150"></canvas>
-            </div>
-        </div>
-
-        @* Funcionalidades do sistema *@
-        <div class="card mt-4">
-            <div class="card-header bg-dark text-white">Funcionalidades do Sistema</div>
-            <div class="card-body">
-                <ul class="list-group list-group-flush">
-                    <li class="list-group-item"><b>Cadastros:</b> Livros, Leitores, Categorias</li>
-                    <li class="list-group-item"><b>Consultas:</b> Pesquisa por título, autor, etc.</li>
-                    <li class="list-group-item"><b>Relatórios:</b> Empréstimos pendentes, livros mais lidos</li>
-                    <li class="list-group-item"><b>Outros:</b> Multas automáticas, autenticação de usuários</li>
-                </ul>
             </div>
         </div>
     }
